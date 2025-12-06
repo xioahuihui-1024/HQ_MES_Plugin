@@ -1,0 +1,82 @@
+/* ================= 菜单高亮基础样式 ================= */
+.mes-highlight {
+    position: relative !important;
+    transition: all 0.2s ease-in-out;
+    /* 具体的颜色样式现在完全由 JS 动态注入控制，这里只留基础结构 */
+}
+
+/* ================= 表格截断与交互样式 (新功能) ================= */
+
+/* 强制截断的单元格样式 */
+.mes-truncated-cell {
+    max-width: 250px !important; /* 限制最大宽度，强制触发截断 */
+    white-space: nowrap !important; /* 不许换行 */
+    overflow: hidden !important;    /* 超出隐藏 */
+    text-overflow: ellipsis !important; /* 显示省略号 */
+    cursor: pointer !important;     /* 鼠标变手型，提示可点击 */
+}
+.mes-truncated-cell:hover {
+    background-color: rgba(0, 120, 215, 0.1) !important; /* 悬停时的反馈 */
+}
+
+
+/* ================= 点击查看详情模态框样式 (新功能) ================= */
+.mes-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999999998;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.mes-modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    width: 600px;
+    max-width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 999999999;
+    animation: mesPopIn 0.2s ease-out;
+}
+
+@keyframes mesPopIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.mes-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+.mes-modal-header h3 { margin: 0; color: #0078d7; }
+.mes-modal-close { cursor: pointer; font-size: 24px; color: #999; }
+.mes-modal-close:hover { color: #333; }
+
+.mes-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    word-break: break-all; /* 确保详情里长文本也会换行 */
+    white-space: pre-wrap; /* 保留原文的换行和空格 */
+    font-family: consolas, monospace, sans-serif;
+    font-size: 13px;
+}
+
+.mes-modal-footer {
+    margin-top: 15px;
+    text-align: right;
+}

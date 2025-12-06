@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "MES 系统优化助手 Pro",
+  "version": "2.0.0",
+  "description": "优化 MES 系统表格展示(截断/点击详情)、菜单高亮及一键刷新 Cookie",
+  "permissions": [
+    "storage",
+    "cookies"
+  ],
+  "host_permissions": [
+    "http://10.128.100.82/*"
+  ],
+  // 新增：定义点击图标弹出的页面
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "MES 优化助手"
+  },
+  // 新增：定义独立的选项配置页面
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://10.128.100.82/nsm_query/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
