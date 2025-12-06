@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <title>MES 优化助手 - 设置</title>
@@ -34,11 +34,17 @@
         <h3 style="margin-top:0; color:#0056b3;">🚀 一键 Cookie 续期</h3>
         <div class="form-group">
             <label>用户名</label>
-            <input type="text" id="cfg-user" placeholder="例如: EP0064">
+            <label for="cfg-user"></label><input type="text" id="cfg-user" placeholder="例如: EP0064">
         </div>
         <div class="form-group">
             <label>密码 (仅保存在本地浏览器)</label>
-            <input type="password" id="cfg-pwd">
+            <label for="cfg-pwd"></label><input type="password" id="cfg-pwd">
+        </div>
+        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed #bcdff1; padding-top: 10px;">
+            <label style="color: #d9534f;">
+                <input type="checkbox" id="cfg-keep-alive"> 启用永久保活 (无感自动重登)
+            </label>
+            <div class="help-text">开启后，当系统提示“没有用户状态”时，会自动在后台登录并刷新页面，除非您手动点击了退出。</div>
         </div>
         <button id="btn-refresh-cookie" class="btn btn-primary">🔄 登录刷新 Cookie</button>
         <div id="login-status" class="status-msg"></div>
@@ -51,7 +57,7 @@
         </div>
         <div class="form-group">
             <label>高亮颜色</label>
-            <input type="color" id="cfg-color" style="height: 40px; padding: 2px;">
+            <label for="cfg-color"></label><input type="color" id="cfg-color" style="height: 40px; padding: 2px;">
         </div>
     </div>
 
@@ -62,7 +68,7 @@
         </div>
         <div class="form-group">
             <label>日期时间显示格式</label>
-            <input type="text" id="cfg-date-format" list="date-formats" placeholder="双击选择或直接输入...">
+            <label for="cfg-date-format"></label><input type="text" id="cfg-date-format" list="date-formats" placeholder="双击选择或直接输入...">
             <datalist id="date-formats">
                 <option value="YYYY-MM-DD HH:mm:ss">标准 (2025-11-20 18:48:17)</option>
                 <option value="Y-MM-DD HH:mm">邪修 (5-11-20 18:48)</option>
@@ -79,7 +85,7 @@
         </div>
         <div class="form-group">
             <label>单元格截断阈值 (字符数)</label>
-            <input type="number" id="cfg-tb-truncate" min="10">
+            <label for="cfg-tb-truncate"></label><input type="number" id="cfg-tb-truncate" min="10">
             <div class="help-text">超过此长度的文本将显示省略号，鼠标悬停显示Tip，点击弹出详情窗口。建议值: 30-50。</div>
         </div>
     </div>

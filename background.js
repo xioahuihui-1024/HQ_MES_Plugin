@@ -2,15 +2,58 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "DO_LOGIN") {
         performLogin(request.data).then(res => {
+            if (res.success) {
+                // 登录成功后，移除“手动退出”的标记，恢复保活功能
+                chrome.storage.local.remove('mes_manual_logout');
+            }
             sendResponse(res);
         });
         return true; // 保持消息通道开启以进行异步响应
     }
+    // 2. [修改] 处理手动退出请求 (精准删除 SessionId)
+    if (request.action === "MANUAL_LOGOUT") {
+        handleManualLogout(sender.url).then(() => {
+            sendResponse({ success: true });
+        });
+        return true;
+    }
 });
 
-// TODO 后续添加处理 监听http://10.128.100.82/nsm_query的任何请求，只要是 302 跳转，
-// 且响应头带了跳转是 登录页Location: http://10.128.100.82/nsm_query/Login.asp 的跳转，则直接进行登录，然后再次重发该请求
+// 处理手动退出：标记状态 + 删除特定 Cookie
+async function handleManualLogout(urlStr) {
+    // 1. 标记用户是手动退出的（防止 content.js 里的自动登录立即生效）
+    await chrome.storage.local.set({ 'mes_manual_logout': true });
+    console.log("🚫 用户手动退出，已标记，暂停自动保活。");
 
+    if (!urlStr) return;
+    const urlObj = new URL(urlStr);
+    const domain = urlObj.hostname;
+
+    try {
+        // 2. 只删除 ASP.NET_SessionId
+        // 如果你需要把登录用户的 Cookie 也清掉也可以，但只清 SessionId 足以让服务器认为未登录
+        const cookieName = 'ASP.NET_SessionId';
+
+        // 获取 Cookie 主要是为了拿到 path 和 secure 属性，确保删除成功
+        const cookie = await chrome.cookies.get({ url: urlStr, name: cookieName });
+
+        if (cookie) {
+            let protocol = cookie.secure ? "https:" : "http:";
+            let cookieUrl = `${protocol}//${cookie.domain}${cookie.path}`;
+
+            await chrome.cookies.remove({
+                url: cookieUrl,
+                name: cookieName
+            });
+            console.log(`✅ 已清除 ${domain} 下的 ${cookieName}`);
+        } else {
+            console.log("未找到 SessionId Cookie，可能已清除");
+        }
+
+    } catch (e) {
+        console.error("清除 Cookie 失败:", e);
+    }
+}
 async function performLogin(userInfo) {
     const BASE_URL = "http://10.128.100.82/nsm_query/";
     const LOGIN_URL = BASE_URL + "Login.aspx";

@@ -6,6 +6,7 @@
 
     // ================= 1. 配置与默认值 =================
     const DEFAULT_CFG = {
+        keepAliveEnabled: false, // 账号保活 默认关闭
         highlightColor: '#0078d7',
         highlightBackground: 'rgba(0,120,215,0.08)',
         highlightEnabled: true,
@@ -33,6 +34,7 @@
         if (result.mes_config) {
             currentCfg = {...DEFAULT_CFG, ...result.mes_config};
         }
+         // 初始化运行
         init();
     });
 
@@ -85,8 +87,10 @@
     function init() {
         injectDynamicStyles();
 
-        // [新增] 每一秒检查一次是否有退出按钮（因为在 Top Frame 加载完成前可能找不到）
-        setInterval(bindLogoutEvent, 1000);
+        // 1. 优先检查：是否是“失效页面”
+        checkIfSessionExpired();
+        // 2. 绑定退出按钮 (实现假退出变真退出)
+        setInterval(bindLogoutEvent, 1500);
 
         if (isMenuFrame) {
             // 绑定菜单点击事件
@@ -106,7 +110,118 @@
         }
     }
 
-    // ================= 4. 样式注入 =================
+    // ================= 3. 核心：检测 Session 失效与自动保活 =================
+    async function checkIfSessionExpired() {
+        // 检测特征：页面包含 "没有用户状态" 且包含那个特定的登录链接 HTML
+        const bodyText = document.body.innerText;
+        const bodyHtml = document.body.innerHTML;
+
+        const isSessionLost = bodyText.includes("没有用户状态") && bodyHtml.includes("Login.aspx");
+        location.pathname.toLowerCase().endsWith('login.aspx');
+        if (isSessionLost) {
+            console.log("⚠️ 检测到 Session 失效页面");
+            // 如果没开启保活，啥也不做（或者你可以选择跳转 Login）
+            if (!currentCfg.keepAliveEnabled) {
+                console.log("未开启永久保活，停止操作。");
+                return;
+            }
+            // 检查是否是用户“手动退出”的
+            const storage = await chrome.storage.local.get(['mes_manual_logout']);
+            if (storage.mes_manual_logout) {
+                console.log("🛑 检测到用户刚才手动点击了退出，不执行自动登录，防止死循环。");
+                // 此时页面停留在“没有用户状态”，用户可以点击页面上的“登录”回去
+                // 或者我们可以帮他跳到 Login.aspx
+                if(location.search.indexOf('isManualRedirect') === -1) {
+                    window.location.href = "Login.aspx?isManualRedirect=1";
+                }
+                return;
+            }
+
+            // === 执行自动重登 ===
+            console.log("🔄 正在尝试自动后台登录...");
+            showOverlay("会话过期，MES 助手正在为您自动续期...");
+
+            const cfg = currentCfg;
+            if (cfg.username && cfg.password) {
+                chrome.runtime.sendMessage({
+                    action: "DO_LOGIN",
+                    data: { username: cfg.username, password: cfg.password }
+                }, (response) => {
+                    if (response && response.success) {
+                        console.log("✅ 续期成功，刷新页面...");
+                        location.reload(); // 刷新当前页面，重发请求
+                    } else {
+                        showOverlay("❌ 自动续期失败，请检查账号密码。", true);
+                    }
+                });
+            } else {
+                showOverlay("❌ 未配置账号密码，无法自动续期。", true);
+            }
+        }
+
+        // 如果在登录页，且开启了保活，且不是手动退出的 -> 也可以考虑自动登进去
+        // 但这取决于你是否想让用户看到登录页。既然是“无感”，通常不需要这一步，除非用户收藏了 Login.aspx
+        // 如果当前已经在首页（说明已经是登录状态），清除手动退出的标记，为下次保活做准备
+        if (location.pathname.toLowerCase().includes("index.aspx")) {
+            chrome.storage.local.remove('mes_manual_logout');
+        }
+    }
+    // 显示一个全屏遮罩提示用户正在重登
+    function showOverlay(msg, isError = false) {
+        let overlay = document.getElementById('mes-relogin-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'mes-relogin-overlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(255, 255, 255, 0.95); z-index: 999999;
+                display: flex; justify-content: center; align-items: center;
+                font-size: 20px; color: #333; font-family: "Segoe UI"; flex-direction: column;
+            `;
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = `<div style="text-align:center;">
+            <div style="font-size: 40px; margin-bottom: 20px;">${isError ? '⚠️' : '🍪'}</div>
+            <div>${msg}</div>
+            ${isError ? '<br><a href="Login.aspx" style="color:#0078d7; font-size:16px;">转到登录页</a>' : ''}
+        </div>`;
+    }
+
+    // ================= 4. 优化：退出按钮绑定 =================
+    function bindLogoutEvent() {
+        // 查找所有可能的退出链接
+        // 针对你的系统，可能是 href="Login.aspx" 或者 onclick="...Login.aspx"
+        const logoutLinks = document.querySelectorAll('a[href*="Login.aspx"], a');
+
+        logoutLinks.forEach(link => {
+            if (link.dataset.mesLogoutBound) return;
+
+            const text = link.innerText || "";
+            const href = link.getAttribute('href') || "";
+
+            // 只要包含“退出”或者是去 Login.aspx 的，都拦截
+            if (text.includes("退出") || href.toLowerCase().includes("login.aspx")) {
+
+                // 排除上面 checkSessionInvalid 生成的那个临时链接（如果有的话）
+                if(href.includes("isManualRedirect")) return;
+
+                link.dataset.mesLogoutBound = "true";
+                link.style.border = "1px dashed red"; // (可选) 调试用，标红框表示已接管
+
+                link.addEventListener('click', function(e) {
+                    console.log("🖱️ 用户点击退出");
+                    // 1. 发送手动退出指令
+                    chrome.runtime.sendMessage({ action: "MANUAL_LOGOUT" });
+
+                    // 2. 允许默认行为发生（即允许它跳转到 Login.aspx）
+                    // 因为我们已经在 background 里删除了 Cookie 并设置了 manual_logout 标记
+                    // 所以跳转后 content.js 会检测到 flag，从而不会触发自动重登
+                });
+            }
+        });
+    }
+
+    // ================= 5. 样式注入 =================
     function injectDynamicStyles() {
         let styleId = 'mes-dynamic-style';
         let styleTag = document.getElementById(styleId);
@@ -146,7 +261,7 @@
         styleTag.textContent = css;
     }
 
-    // ================= 5. 菜单高亮逻辑 (复用你的核心逻辑) =================
+    // ================= 6. 菜单高亮逻辑 (复用你的核心逻辑) =================
     function bindMenuAnchors() {
         if (!currentCfg.highlightEnabled) return;
         // 查找所有菜单链接
@@ -243,7 +358,7 @@
     }
 
 
-    // ================= 6. 表格优化逻辑 =================
+    // ================= 7. 表格优化逻辑 =================
 
     function fixTableStyle() {
         if (!currentCfg.tbFixEnabled) return;
@@ -427,36 +542,6 @@
             .replace(/D(?!D)/g, parseInt(D));
     }
 
-    // [新增] 绑定退出按钮事件
-    function bindLogoutEvent() {
-        // 退出按钮是：<a href="Login.aspx" ...>退出</a>
-        // 我们查找所有包含 "退出" 两个字的链接，或者 href 指向 Login.aspx 的链接
-        const logoutLinks = document.querySelectorAll('a[href*="Login.aspx"], a');
 
-        logoutLinks.forEach(link => {
-            // 过滤：必须包含“退出”文本，或者是 Login.aspx
-            const text = link.innerText || "";
-            const href = link.getAttribute('href') || "";
-
-            if (text.includes("退出") || href.indexOf("Login.aspx") > -1) {
-
-                // 防止重复绑定
-                if (link.dataset.mesLogoutBound) return;
-                link.dataset.mesLogoutBound = "true";
-
-                // 绑定点击事件
-                link.addEventListener('click', function(e) {
-                    console.log("🖱️ 监测到点击退出，正在请求清除 Cookie...");
-
-                    // 发送消息给 background.js
-                    chrome.runtime.sendMessage({ action: "CLEAR_COOKIES" });
-
-                    // 注意：这里不阻止默认事件(e.preventDefault)，
-                    // 让它继续执行跳转 Login.aspx 的操作，
-                    // 因为 background.js 清除 Cookie 是异步的，通常跳转发生时 Cookie 已经被删了
-                });
-            }
-        });
-    }
 
 })();

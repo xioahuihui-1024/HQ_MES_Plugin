@@ -1,6 +1,7 @@
 const DEFAULT_CFG = {
     username: '',
     password: '',
+    keepAliveEnabled: false, // [不掉登录 账号保活] 默认关闭
     highlightColor: '#0078d7',
     highlightBackground: 'rgba(0,120,215,0.08)',
     highlightEnabled: true,
@@ -19,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('cfg-user').value = cfg.username;
         document.getElementById('cfg-pwd').value = cfg.password;
+        // [新增] 回显保活开关
+        document.getElementById('cfg-keep-alive').checked = cfg.keepAliveEnabled;
         document.getElementById('cfg-highlight-enable').checked = cfg.highlightEnabled;
         document.getElementById('cfg-color').value = cfg.highlightColor;
         document.getElementById('cfg-tb-enable').checked = cfg.tbFixEnabled;
@@ -34,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const newCfg = {
             username: document.getElementById('cfg-user').value,
             password: document.getElementById('cfg-pwd').value,
+            // 保存保活开关
+            keepAliveEnabled: document.getElementById('cfg-keep-alive').checked,
             highlightEnabled: document.getElementById('cfg-highlight-enable').checked,
             highlightColor: document.getElementById('cfg-color').value,
             highlightBackground: hexToRgba(document.getElementById('cfg-color').value, 0.1),
