@@ -12,7 +12,7 @@
     // --- 1. 工具模块 (Utils) ---
     const Utils = {
         // 安全等待 DOM 加载
-        waitDOM: function(callback) {
+        waitDOM: function (callback) {
             if (document.body && document.readyState !== 'loading') {
                 callback();
             } else {
@@ -20,7 +20,7 @@
             }
         },
         // 复制到剪贴板
-        copyText: function(text, onSuccess) {
+        copyText: function (text, onSuccess) {
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(onSuccess);
             } else {
@@ -32,17 +32,18 @@
                 textArea.focus();
                 textArea.select();
                 try {
-                    if(document.execCommand('copy')) onSuccess();
-                } catch (e) {}
+                    if (document.execCommand('copy')) onSuccess();
+                } catch (e) {
+                }
                 document.body.removeChild(textArea);
             }
         },
         // HTML 转义
-        escapeHtml: function(unsafe) {
+        escapeHtml: function (unsafe) {
             return (unsafe || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         },
         // 时间格式化
-        formatTimestamp: function(raw, formatStr) {
+        formatTimestamp: function (raw, formatStr) {
             if (!/^20\d{12}$/.test(raw)) return raw; // 简单的格式校验
             const Y = raw.slice(0, 4), M = raw.slice(4, 6), D = raw.slice(6, 8);
             const H = raw.slice(8, 10), m = raw.slice(10, 12), s = raw.slice(12, 14);
@@ -58,43 +59,37 @@
     const AuthModule = {
         isHandling: false,
 
-        // 检查页面是否是服务端返回的错误页
-        checkDomExpiry: function() {
+        checkDomExpiry: function () {
             Utils.waitDOM(() => {
                 const text = document.body.innerText;
                 const html = document.body.innerHTML;
-                // 特征：没有用户状态 + Login.aspx 链接
-                if (text.includes("没有用户状态") && html.includes("Login.aspx")) {
-                    console.warn('🛑 [Auth] 页面加载了服务端过期提示，准备重登');
-                    this.handleExpired(false);
+                if (text.includes("没有用户状态") && (html.includes("Login.aspx") || html.includes("window.parent.location"))) {
+                    console.warn('🛑 [Auth] 页面加载了服务端过期提示');
+                    this.handleExpired(null);
                 }
             });
         },
 
         // 处理 Session 过期
-        // saveCurrentForm: 是否尝试保存当前页面的表单数据 (AJAX拦截时需要，DOM检测时通常不需要)
-        handleExpired: async function(saveCurrentForm = true) {
+        handleExpired: async function(requestPayload = null) {
+            // [关键] 严格校验 payload，防止 boolean true 混入
+            if (requestPayload && typeof requestPayload === 'object') {
+                console.log('💾 [Auth] 捕获并保存请求数据:', requestPayload);
+                sessionStorage.setItem('MES_REPLAY_DATA', JSON.stringify(requestPayload));
+            } else if (requestPayload === true) {
+                console.warn('⚠️ [Auth] 接收到无效的数据 true，忽略保存');
+            }
+
             if (this.isHandling) return;
             this.isHandling = true;
 
             const cfg = await ConfigModule.load();
-            if (!cfg.keepAliveEnabled) {
-                this.isHandling = false;
-                return;
-            }
+            if (!cfg.keepAliveEnabled) { this.isHandling = false; return; }
 
-            // 检查手动退出标记
             const storage = await new Promise(r => chrome.storage.local.get(['mes_manual_logout'], r));
-            if (storage.mes_manual_logout) {
-                console.log('🚫 [Auth] 检测到手动退出标记 (mes_manual_logout=true)，暂停保活');
-                // 这里加一个提示，方便调试知道为什么不自动登
-                // UIModule.showOverlay("已手动退出，暂停自动登录", true);
-                this.isHandling = false;
-                return;
-            }
+            if (storage.mes_manual_logout) { this.isHandling = false; return; }
 
             console.log('🔄 [Auth] 执行无感刷新...');
-            if (saveCurrentForm) this.saveFormState();
             UIModule.showOverlay("会话过期，正在自动续期...", false);
 
             if (cfg.username && cfg.password) {
@@ -105,12 +100,7 @@
                     this.isHandling = false;
                     if (response && response.success) {
                         console.log('✅ [Auth] 续期成功');
-                        // 登录成功，务必清除“手动退出”标记，防止下次误判 [关键!]
                         chrome.storage.local.remove('mes_manual_logout');
-
-                        if (document.getElementById('btnQuery') || sessionStorage.getItem('MES_FORM_DATA')) {
-                            sessionStorage.setItem('MES_AUTO_RETRY', 'true');
-                        }
                         setTimeout(() => location.reload(), 500);
                     } else {
                         UIModule.showOverlay("❌ 续期失败，请检查密码", true);
@@ -122,118 +112,86 @@
             }
         },
 
-        // 保存表单数据到 SessionStorage
-        saveFormState: function() {
-            try {
-                const formData = {};
-                // 保存查询类型下拉框
-                const ddlQuery = document.getElementById('ddlQueryType');
-                if (ddlQuery) formData['ddlQueryType'] = ddlQuery.value;
-
-                // 保存所有文本输入框 (日期、时间、动态生成的条件)
-                document.querySelectorAll('input[type="text"], select').forEach(el => {
-                    if (el.id) {
-                        formData[el.id] = el.value;
-                    }
-                });
-
-                if (Object.keys(formData).length > 0) {
-                    sessionStorage.setItem('MES_FORM_DATA', JSON.stringify(formData));
-                    console.log('💾 [Auth] 查询条件已保存');
-                }
-            } catch (e) {
-                console.warn('保存表单失败', e);
-            }
-        },
-
-        // 恢复表单数据
-        restoreFormState: function() {
-            const dataStr = sessionStorage.getItem('MES_FORM_DATA');
-            if (!dataStr) return;
-
-            try {
-                const formData = JSON.parse(dataStr);
-                let restoreCount = 0;
-
-                // 1. 先恢复下拉框 (QueryType)
-                if (formData['ddlQueryType']) {
-                    const ddl = document.getElementById('ddlQueryType');
-                    if (ddl && ddl.value !== formData['ddlQueryType']) {
-                        ddl.value = formData['ddlQueryType'];
-                        // 触发 change 事件，让原网页 JS (jsbasequery.js) 去加载对应的动态输入框
-                        // 注意：原网页加载动态输入框是 AJAX，所以我们需要延迟恢复其他字段
-                        const event = new Event('change');
-                        ddl.dispatchEvent(event);
-                    }
-                }
-
-                // 2. 延迟恢复其他输入框 (给原网页一点时间生成 DOM)
-                setTimeout(() => {
-                    for (const [id, value] of Object.entries(formData)) {
-                        if (id === 'ddlQueryType') continue;
-                        const el = document.getElementById(id);
-                        if (el) {
-                            el.value = value;
-                            restoreCount++;
-                        }
-                    }
-                    console.log(`♻️ [Auth] 已恢复 ${restoreCount} 个查询条件`);
-                    sessionStorage.removeItem('MES_FORM_DATA'); // 用完即焚
-                }, 800); // 延迟 800ms，等待动态表单生成
-
-            } catch (e) {
-                console.warn('恢复表单失败', e);
-            }
-        },
-
-        // 检查并执行自动重试
+        // 检查自动重试 重放
         checkAutoRetry: function() {
-            if (sessionStorage.getItem('MES_AUTO_RETRY') === 'true') {
-                console.log('🚀 [Auth] 检测到自动重试标记...');
-                sessionStorage.removeItem('MES_AUTO_RETRY');
+            const replayDataStr = sessionStorage.getItem('MES_REPLAY_DATA');
 
-                // 1. 先尝试回显数据
-                this.restoreFormState();
+            if (replayDataStr) {
+                sessionStorage.removeItem('MES_REPLAY_DATA'); // 清除标记
+                try {
+                    const replayData = JSON.parse(replayDataStr);
+                    // 双重校验
+                    if (!replayData || !replayData.url) return;
 
-                // 2. 延迟点击查询按钮 (等待数据回显完毕)
-                setTimeout(() => {
-                    const btn = document.getElementById('btnQuery');
-                    if (btn) {
-                        console.log('👆 [Auth] 自动点击查询按钮');
-                        btn.click();
+                    console.log('🚀 [Auth] 检测到重试数据，发送重发指令:', replayData);
 
-                        // 显示提示
-                        const tip = document.createElement('div');
-                        tip.innerText = '已为您自动恢复条件并查询';
-                        tip.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#e1f3d8;color:#67c23a;padding:5px 10px;border-radius:4px;z-index:999999;font-size:12px;border:1px solid #c2e7b0;box-shadow:0 2px 10px rgba(0,0,0,0.1);animation: fadeInOut 3s forwards;';
-                        document.body.appendChild(tip);
-                        setTimeout(() => tip.remove(), 3000);
-                    }
-                }, 1500); // 1.5秒后点击，给 DOM 生成和赋值留足时间
+                    // 延迟 1.5 秒，确保 inject.js 和 jQuery 彻底就绪
+                    setTimeout(() => {
+                        // 1. 发送指令让 inject.js 重发 AJAX
+                        window.postMessage({
+                            type: 'MES_DO_REPLAY',
+                            payload: replayData
+                        }, '*');
+
+                        // 2. 显示优化后的提示条
+                        Utils.waitDOM(() => {
+                            const bar = document.createElement('div');
+                            // 使用 Flex 布局，左边图标，中间文字，右边关闭按钮
+                            bar.innerHTML = `
+                                <div style="display:flex;align-items:center;justify-content:center; max-width: 800px; margin: 0 auto;">
+                                    <span style="font-size:24px;margin-right:12px;">✅</span>
+                                    <div style="text-align:left; flex:1;">
+                                        <div style="font-weight:bold; font-size:15px; margin-bottom:2px;">已自动重放查询请求，表格数据已恢复！</div>
+                                        <div style="font-size:13px; color:#5a7b38;">⚠️ 注意：此结果基于您上次的请求重放，<b style="text-decoration:underline;">上方的查询条件框可能已重置</b>，请勿混淆。</div>
+                                    </div>
+                                    <span style="margin-left:20px; cursor:pointer; opacity:0.8; font-weight:bold; border:1px solid #8cad76; padding:4px 12px; border-radius:4px; background:white; font-size:12px;" onclick="this.parentElement.parentElement.remove()">知道了</span>
+                                </div>
+                            `;
+
+                            // 样式调整：稍微加高一点，背景色更柔和
+                            bar.style.cssText = `
+                                position: fixed; 
+                                top: 0; 
+                                left: 0; 
+                                width: 100%; 
+                                background: #dff0d8; 
+                                color: #3c763d; 
+                                border-bottom: 1px solid #d6e9c6; 
+                                padding: 10px 20px; 
+                                z-index: 9999999; 
+                                font-family: "Segoe UI", "Microsoft YaHei", sans-serif; 
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+                                animation: slideDown 0.5s ease-out;
+                            `;
+
+                            // 注入动画 (防止重复)
+                            if(!document.getElementById('mes-anim-style')) {
+                                const style = document.createElement('style');
+                                style.id = 'mes-anim-style';
+                                style.innerHTML = `@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }`;
+                                document.head.appendChild(style);
+                            }
+
+                            document.body.appendChild(bar);
+
+                            // 延长到 8 秒后自动消失，让用户看清楚
+                            setTimeout(() => { if(bar.parentElement) bar.remove(); }, 8000);
+                        });
+                    }, 1500);
+                } catch(e) {
+                    console.error('重试数据解析失败', e);
+                }
             }
         },
-
-        // [优化] 绑定退出按钮：只在 Top.aspx 中执行，且只绑定一次
-        bindLogout: function() {
-            // 1. 性能优化：只在头部 Frame 检测
+        bindLogout: function () {
             if (!location.pathname.toLowerCase().includes('top.aspx')) return;
-
-            console.log('绑定退出按钮 页面 找到了')
-            // 2. 精准定位：根据你提供的 HTML 结构查找
             Utils.waitDOM(() => {
-                // 查找包含“退出”字样或链接到 Login.aspx 的 A 标签
                 const exitLinks = document.querySelectorAll('a[href*="Login.aspx"]');
-
                 exitLinks.forEach(link => {
-                    if (link.dataset.mesLogoutBound) return; // 防止重复绑定
-
-                    // 再次确认文本内容，防止误伤
+                    if (link.dataset.mesLogoutBound) return;
                     if (link.innerText.includes("退出")) {
-                        console.log('Found Logout Button:', link); // 调试用
                         link.dataset.mesLogoutBound = "true";
-                        console.log('绑定退出按钮 绑定成功')
                         link.addEventListener('click', () => {
-                            console.log('👋 用户点击了退出，标记手动退出状态');
                             chrome.runtime.sendMessage({action: "MANUAL_LOGOUT"});
                         });
                     }
@@ -246,7 +204,7 @@
     const UIModule = {
         config: {}, // 缓存配置
 
-        init: function(cfg) {
+        init: function (cfg) {
             this.config = cfg;
             this.injectStyles();
 
@@ -257,7 +215,7 @@
         },
 
         // 注入 CSS
-        injectStyles: function() {
+        injectStyles: function () {
             Utils.waitDOM(() => {
                 let style = document.getElementById('mes-dynamic-style');
                 if (!style) {
@@ -278,7 +236,7 @@
         },
 
         // 初始化模态框容器
-        setupModalContainer: function() {
+        setupModalContainer: function () {
             if (!document.getElementById('mes-modal-container')) {
                 const c = document.createElement('div');
                 c.id = 'mes-modal-container';
@@ -287,7 +245,7 @@
         },
 
         // 显示遮罩
-        showOverlay: function(msg, isError) {
+        showOverlay: function (msg, isError) {
             Utils.waitDOM(() => {
                 let overlay = document.getElementById('mes-relogin-overlay');
                 if (!overlay) {
@@ -305,7 +263,7 @@
         },
 
         // 显示详情弹窗
-        showDetailModal: function(content) {
+        showDetailModal: function (content) {
             const container = document.getElementById('mes-modal-container');
             if (!container) return;
 
@@ -332,13 +290,16 @@
             document.getElementById('mes-btn-copy').onclick = () => {
                 Utils.copyText(document.getElementById('mes-modal-text').innerText, () => {
                     const tip = document.getElementById('mes-copy-tip');
-                    if(tip) { tip.style.opacity = 1; setTimeout(() => tip.style.opacity = 0, 2000); }
+                    if (tip) {
+                        tip.style.opacity = 1;
+                        setTimeout(() => tip.style.opacity = 0, 2000);
+                    }
                 });
             };
         },
 
         // 菜单高亮逻辑
-        bindMenu: function() {
+        bindMenu: function () {
             if (!this.config.highlightEnabled) return;
 
             document.querySelectorAll('#treeFunc a, a[href*=".aspx"]').forEach(link => {
@@ -364,7 +325,7 @@
         },
 
         // 恢复上次菜单状态
-        restoreMenu: function() {
+        restoreMenu: function () {
             chrome.storage.local.get(['mes_last_selected_href'], (result) => {
                 const lastHref = result.mes_last_selected_href;
                 if (!lastHref) return;
@@ -384,7 +345,7 @@
                             const idx = p.id.match(/^treeFuncn(\d+)Nodes$/)[1];
                             // 尝试高亮父级图标
                             const toggle = document.getElementById('treeFunct' + idx);
-                            if(toggle) toggle.classList.add('mes-menu-open');
+                            if (toggle) toggle.classList.add('mes-menu-open');
                         }
                         p = p.parentElement;
                     }
@@ -394,7 +355,7 @@
         },
 
         // 表格优化逻辑
-        fixTable: function() {
+        fixTable: function () {
             if (!this.config.tbFixEnabled) return;
             const tb = document.getElementById('tbDetail');
             if (!tb) return;
@@ -456,7 +417,7 @@
             dateFormatEnabled: true,
             dateFormatString: 'YY-MM-DD HH:mm:ss'
         },
-        load: function() {
+        load: function () {
             return new Promise(resolve => {
                 chrome.storage.local.get(['mes_config'], (res) => {
                     resolve({...this.default, ...res.mes_config});
@@ -478,11 +439,13 @@
             chrome.storage.local.remove('mes_manual_logout');
         }
 
-        // 1. 注入拦截器
+        // 1. 注入拦截器 [添加 charset]
         const script = document.createElement('script');
         script.src = chrome.runtime.getURL('inject.js');
+        script.charset = "UTF-8"; // [关键] 解决乱码问题
         (document.head || document.documentElement).appendChild(script);
         script.onload = () => script.remove();
+
 
         // 2. 加载配置并启动 UI
         const cfg = await ConfigModule.load();
@@ -522,11 +485,13 @@
     // ==========================================
 
     // 监听来自 inject.js 的过期信号
-    window.addEventListener('message', function(event) {
+    window.addEventListener('message', function (event) {
         if (event.source !== window) return;
         if (event.data && event.data.type === 'MES_SESSION_EXPIRED') {
-            console.warn('⚡ [MES-Core] 收到过期信号:', event.data );
-            AuthModule.handleExpired();
+            console.warn('⚡ [MES-Core] 收到过期信号:', event.data);
+            // 收到 inject.js 的信号，说明是 AJAX 请求或 Alert 弹窗触发的
+            AuthModule.handleExpired(event.data.requestData);
+
         }
     });
 
