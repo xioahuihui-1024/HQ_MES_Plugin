@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MES 系统优化助手 Pro",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "优化 MES 系统表格展示(截断/点击详情)、菜单高亮及一键刷新 Cookie",
   "permissions": [
     "storage",

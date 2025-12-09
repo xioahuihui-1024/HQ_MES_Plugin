@@ -58,20 +58,15 @@
     const AuthModule = {
         isHandling: false,
 
-        // [新增] 1. 检查当前页面是否已经是"失效页面" (解决菜单点击问题)
+        // 检查页面是否是服务端返回的错误页
         checkDomExpiry: function() {
-            // 等待 body 加载，避免空指针
             Utils.waitDOM(() => {
-                const html = document.body.innerHTML;
                 const text = document.body.innerText;
-
-                // 特征匹配：根据你提供的 curl 响应
-                // 响应：没有用户状态，请先<a href="javascript:window.parent.location='Login.aspx';">登录</a>
+                const html = document.body.innerHTML;
+                // 特征：没有用户状态 + Login.aspx 链接
                 if (text.includes("没有用户状态") && html.includes("Login.aspx")) {
-                    console.warn('🛑 [Auth] 检测到页面加载了由服务端返回的过期提示 HTML');
-                    // 这种情况下，页面本身就是错误页，不需要保存表单（因为表单已经没了）
-                    // 直接执行重登逻辑
-                    this.handleExpired(false); // false 表示不需要保存表单，因为当前页已经是白屏错误页了
+                    console.warn('🛑 [Auth] 页面加载了服务端过期提示，准备重登');
+                    this.handleExpired(false);
                 }
             });
         },
@@ -83,10 +78,7 @@
             this.isHandling = true;
 
             const cfg = await ConfigModule.load();
-
-            // 检查保活开关
             if (!cfg.keepAliveEnabled) {
-                console.log('[Auth] 未开启保活，忽略');
                 this.isHandling = false;
                 return;
             }
@@ -94,18 +86,15 @@
             // 检查手动退出标记
             const storage = await new Promise(r => chrome.storage.local.get(['mes_manual_logout'], r));
             if (storage.mes_manual_logout) {
-                console.log('[Auth] 检测到手动退出，暂停保活');
+                console.log('🚫 [Auth] 检测到手动退出标记 (mes_manual_logout=true)，暂停保活');
+                // 这里加一个提示，方便调试知道为什么不自动登
+                // UIModule.showOverlay("已手动退出，暂停自动登录", true);
                 this.isHandling = false;
                 return;
             }
 
             console.log('🔄 [Auth] 执行无感刷新...');
-
-            // [新增] 2. 如果是在查询界面过期的，先保存查询条件
-            if (saveCurrentForm) {
-                this.saveFormState();
-            }
-
+            if (saveCurrentForm) this.saveFormState();
             UIModule.showOverlay("会话过期，正在自动续期...", false);
 
             if (cfg.username && cfg.password) {
@@ -116,14 +105,12 @@
                     this.isHandling = false;
                     if (response && response.success) {
                         console.log('✅ [Auth] 续期成功');
+                        // 登录成功，务必清除“手动退出”标记，防止下次误判 [关键!]
+                        chrome.storage.local.remove('mes_manual_logout');
 
-                        // 标记：刷新后自动重试
-                        // 如果当前页有查询按钮，或者刚才保存了表单数据，都标记重试
                         if (document.getElementById('btnQuery') || sessionStorage.getItem('MES_FORM_DATA')) {
                             sessionStorage.setItem('MES_AUTO_RETRY', 'true');
                         }
-
-                        // 延迟刷新确保 Cookie 写入
                         setTimeout(() => location.reload(), 500);
                     } else {
                         UIModule.showOverlay("❌ 续期失败，请检查密码", true);
@@ -135,7 +122,7 @@
             }
         },
 
-        // [新增] 保存表单数据到 SessionStorage
+        // 保存表单数据到 SessionStorage
         saveFormState: function() {
             try {
                 const formData = {};
@@ -159,7 +146,7 @@
             }
         },
 
-        // [新增] 恢复表单数据
+        // 恢复表单数据
         restoreFormState: function() {
             const dataStr = sessionStorage.getItem('MES_FORM_DATA');
             if (!dataStr) return;
@@ -226,19 +213,31 @@
             }
         },
 
-        // 绑定退出按钮 (手动退出逻辑)
+        // [优化] 绑定退出按钮：只在 Top.aspx 中执行，且只绑定一次
         bindLogout: function() {
-            document.querySelectorAll('a[href*="Login.aspx"], a').forEach(link => {
-                if (link.dataset.mesLogoutBound) return;
-                const text = (link.innerText || "").toLowerCase();
-                const href = (link.getAttribute('href') || "").toLowerCase();
+            // 1. 性能优化：只在头部 Frame 检测
+            if (!location.pathname.toLowerCase().includes('top.aspx')) return;
 
-                if ((text.includes("退出") || href.includes("login.aspx")) && !href.includes("manualredirect")) {
-                    link.dataset.mesLogoutBound = "true";
-                    link.addEventListener('click', () => {
-                        chrome.runtime.sendMessage({action: "MANUAL_LOGOUT"});
-                    });
-                }
+            console.log('绑定退出按钮 页面 找到了')
+            // 2. 精准定位：根据你提供的 HTML 结构查找
+            Utils.waitDOM(() => {
+                // 查找包含“退出”字样或链接到 Login.aspx 的 A 标签
+                const exitLinks = document.querySelectorAll('a[href*="Login.aspx"]');
+
+                exitLinks.forEach(link => {
+                    if (link.dataset.mesLogoutBound) return; // 防止重复绑定
+
+                    // 再次确认文本内容，防止误伤
+                    if (link.innerText.includes("退出")) {
+                        console.log('Found Logout Button:', link); // 调试用
+                        link.dataset.mesLogoutBound = "true";
+                        console.log('绑定退出按钮 绑定成功')
+                        link.addEventListener('click', () => {
+                            console.log('👋 用户点击了退出，标记手动退出状态');
+                            chrome.runtime.sendMessage({action: "MANUAL_LOGOUT"});
+                        });
+                    }
+                });
             });
         }
     };
@@ -469,9 +468,15 @@
     // ==========================================
     // 主程序入口 (Main)
     // ==========================================
-
     async function init() {
         console.log('[MES-Core] 初始化...');
+
+        // 0. [关键修复] 如果当前是主页 (Index.aspx)，说明用户已经正常登录进来了
+        // 必须清除之前的“手动退出”标记，否则下次过期时插件会以为用户还想退出
+        if (location.pathname.toLowerCase().includes('index.aspx')) {
+            console.log('🏠 [Main] 检测到进入首页，清除手动退出标记');
+            chrome.storage.local.remove('mes_manual_logout');
+        }
 
         // 1. 注入拦截器
         const script = document.createElement('script');
@@ -483,8 +488,7 @@
         const cfg = await ConfigModule.load();
         UIModule.init(cfg);
 
-        // [新增] 3. 立即检查当前页面内容是否是服务端返回的"错误页"
-        // 这一步解决了菜单点击无法重登的问题
+        // 3. 检查是否是失效页面
         AuthModule.checkDomExpiry();
 
         // 4. 检查是否需要自动“重试查询” (回显数据 + 点击查询)
@@ -494,16 +498,23 @@
         const path = location.pathname.toLowerCase();
         const isMenu = path.includes('left') || document.querySelector('#treeFunc');
         const isMain = path.includes('basicquery') || document.querySelector('#tbDetail');
+        const isTop = path.includes('top.aspx');
 
-        // 定时任务 (解决动态加载问题)
-        setInterval(() => {
-            AuthModule.bindLogout(); // 随时绑定新出现的退出按钮
-            if (isMenu) UIModule.bindMenu();
-            if (isMain) UIModule.fixTable();
-        }, 1000);
+        // 6. 执行逻辑
+        if (isTop) {
+            // Top 页只需要绑定一次退出，不需要 setInterval 循环检测
+            // 因为 Top 页加载完就不会变了
+            AuthModule.bindLogout();
+        }
 
-        // 延迟执行一次菜单恢复
-        if (isMenu) setTimeout(() => UIModule.restoreMenu(), 500);
+        if (isMenu) {
+            setInterval(() => UIModule.bindMenu(), 1000); // 菜单可能是动态的
+            setTimeout(() => UIModule.restoreMenu(), 500);
+        }
+
+        if (isMain) {
+            setInterval(() => UIModule.fixTable(), 1000); // 表格内容会变
+        }
     }
 
     // ==========================================
