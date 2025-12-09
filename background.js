@@ -1,9 +1,41 @@
+// ==================== [新增] webRequest 监听器：监控所有网络请求 ====================
+// 注意：Manifest V3 中 webRequest API 功能受限，无法读取响应体
+// 但可以监听响应头，作为补充检测手段
+try {
+    chrome.webRequest.onCompleted.addListener(
+        async (details) => {
+            // 只监听目标网站的请求
+            if (!details.url.includes('10.128.100.82')) return;
+
+            // 检查响应头中是否有 Session 过期的提示
+            const contentType = details.responseHeaders?.find(
+                h => h.name.toLowerCase() === 'content-type'
+            )?.value || '';
+
+            // 如果响应是 HTML 类型，可能是登录页（但无法读取响应体）
+            // 这里主要作为补充，真正的检测在 content.js 中进行
+            if (contentType.includes('text/html') && details.statusCode === 200) {
+                // 可以在这里添加额外的检测逻辑
+                console.debug('[Background] 检测到 HTML 响应:', details.url);
+            }
+        },
+        {
+            urls: ["http://10.128.100.82/*"],
+            types: ["xmlhttprequest", "main_frame", "sub_frame"]
+        },
+        ["responseHeaders"]
+    );
+    console.log('✅ [Background] webRequest 监听器已初始化');
+} catch (error) {
+    console.warn('[Background] webRequest API 不可用（可能需要企业策略）:', error);
+}
+
 // 监听来自 content.js 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "DO_LOGIN") {
         performLogin(request.data).then(res => {
             if (res.success) {
-                // 登录成功后，移除“手动退出”的标记，恢复保活功能
+                // 登录成功后，移除"手动退出"的标记，恢复保活功能
                 chrome.storage.local.remove('mes_manual_logout');
             }
             sendResponse(res);
@@ -15,6 +47,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         handleManualLogout(sender.url).then(() => {
             sendResponse({ success: true });
         });
+        return true;
+    }
+    // 3. [新增] 处理 Session 过期通知（从 content.js 的拦截器发送）
+    if (request.action === "SESSION_EXPIRED") {
+        console.warn('[Background] 收到 Session 过期通知:', request.url);
+        // 可以在这里添加额外的处理逻辑
+        sendResponse({ received: true });
         return true;
     }
 });
