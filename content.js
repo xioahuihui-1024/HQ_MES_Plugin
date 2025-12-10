@@ -268,14 +268,31 @@
                     
                     /* === 设置按钮 === */
                     #mes-col-settings-btn {
-                        /* float: right;  <-- 删掉 float */
-                        cursor: pointer; padding: 2px 10px;
-                        border: 1px solid #d9d9d9; background: #fff; border-radius: 4px;
-                        color: #666; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;
-                        position: relative; transition: all 0.3s;
+                        /* float: right; */ /* 确保去掉了 float，防止跑偏 */
+                      
+                        /* 1. 调整这里：减小内边距 (上右下左) */
+                        padding: 2px 8px;   /* 原来可能是 5px 12px，改小一点 */
+                        
+                        /* 2. 调整这里：字体改小 */
+                        font-size: 12px;    /* 原来可能是 13px */
+                        
+                        /* 其他保持不变 */
+                        border: 1px solid #d9d9d9; 
+                        background: #fff; 
+                        border-radius: 4px;
+                        color: #666; 
+                        display: inline-flex; /* 确保是 inline-flex 以便和分页栏对齐 */
+                        align-items: center; 
+                        gap: 4px;
+                        position: relative; 
+                        transition: all 0.3s;
                         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
                         user-select: none;
-                        /* vertical-align: middle; */
+                        
+                        /* [建议新增] 垂直对齐修正，防止按钮比旁边的下拉框高或者低 */
+                        vertical-align: middle; 
+                        height: 24px;       /* 强制限制高度，跟旁边的输入框一致 */
+                        line-height: 1;     /* 防止文字撑开高度 */
                     }
                     #mes-col-settings-btn:hover { color: #40a9ff; border-color: #40a9ff; }
                     

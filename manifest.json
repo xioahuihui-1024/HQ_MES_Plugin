@@ -1,8 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "MES 系统优化助手 Pro",
-  "version": "2.3.18",
-  "description": "提升 MES 表格展示效果（截断与点击详情）、支持菜单高亮，并加入无感保活功能。顺便留点提示，不然看着像啥都没干，那可太委屈了\uD83E\uDD71",
+  "name": "MES 助手 Pro",
+  "version": "3.0.1",
+  "description": "专为 MES 系统打造的增强工具。提供无感自动登录、断线请求重放、表格列拖拽排序/筛选、固定表头及智能数据展示功能，大幅提升工作效率。",
+    "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "permissions": [
     "storage",
     "cookies",
@@ -18,7 +23,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "MES 优化助手"
+    "default_title": "MES 助手配置"
   },
   "options_ui": {
     "page": "options.html",
@@ -44,5 +49,8 @@
       "resources": ["inject.js"],
       "matches": ["http://10.128.100.82/*"]
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
 }
