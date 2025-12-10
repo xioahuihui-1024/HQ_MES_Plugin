@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MES 系统优化助手 Pro",
-  "version": "2.3.10",
+  "version": "2.3.17",
   "description": "提升 MES 表格展示效果（截断与点击详情）、支持菜单高亮，并加入无感保活功能。顺便留点提示，不然看着像啥都没干，那可太委屈了\uD83E\uDD71",
   "permissions": [
     "storage",

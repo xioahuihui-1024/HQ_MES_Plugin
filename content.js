@@ -209,20 +209,17 @@
     };
 
     // --- 3. 界面增强模块 (UI) ---
+    // --- 3. 界面增强模块 (UI) ---
     const UIModule = {
         config: {},
 
         init: function (cfg) {
             this.config = cfg;
             this.injectStyles();
-
-            // 模块独立初始化
             this.SmartTooltip.init();
 
-            // 只有开启了高级管理器才初始化 TableManager
-            if (this.config.tableManagerEnabled) {
-                this.TableManager.init(this);
-            }
+            // 无论配置如何，TableManager 都需要初始化以处理基础截断
+            this.TableManager.init(this);
 
             Utils.waitDOM(() => {
                 this.setupModalContainer();
@@ -239,116 +236,99 @@
                 }
                 const cfg = this.config;
 
-                // 1. 固定表头样式 (独立控制)
+                // 固定表头
                 const stickyCss = cfg.stickyHeaderEnabled ? `
                     #tbDetail #trfirst td, 
                     #tbDetail .tdContextColumn td,
                     #tbDetail th { 
-                        position: sticky !important; 
-                        top: 0 !important; 
-                        z-index: 20 !important; /* 提高层级 */
-                        background-color: #f5f5f5 !important; 
-                        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                        position: sticky !important; top: 0 !important; z-index: 20 !important; 
+                        background-color: #f7f7f7 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.08);
                     }
-                ` : '';
-
-                // 2. 高级管理器样式 (只有开启才注入，避免干扰)
-                const managerCss = cfg.tableManagerEnabled ? `
-                    /* 调整手柄 */
-                    .mes-resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 5px; cursor: col-resize; z-index: 10; }
-                    .mes-resize-handle:hover, .mes-resize-active { background: #0078d7; }
-                    
-                    /* 设置按钮 */
-                    #mes-col-settings-btn {
-                        float: right; margin-right: 10px; cursor: pointer; padding: 4px 10px;
-                        border: 1px solid #ccc; background: #fff; border-radius: 4px;
-                        color: #555; font-size: 12px; display: flex; align-items: center; gap: 5px;
-                        position: relative; transition: all 0.2s;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    }
-                    #mes-col-settings-btn:hover { background: #f8f8f8; border-color: #999; }
-                    
-                    /* [新功能] 按钮激活状态 (表示有自定义配置) */
-                    #mes-col-settings-btn.is-active {
-                        background-color: #e6f7ff; border-color: #1890ff; color: #0078d7; font-weight: bold;
-                    }
-                    #mes-col-settings-btn.is-active::after {
-                        content: ''; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px;
-                        background: #ff4d4f; border-radius: 50%; border: 1px solid #fff;
-                    }
-
-                    /* [优化] 菜单样式：向下弹出，向左对齐 */
-                    #mes-col-settings-menu {
-                        position: absolute;
-                        top: 100%; /* 向下弹出 */
-                        right: 0;     /* 向左对齐 */
-                        margin-bottom: 8px; 
-                        background: white; border: 1px solid #ddd; 
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                        padding: 0; border-radius: 4px; z-index: 999999;
-                        min-width: 280px; max-height: 500px; overflow-y: auto;
-                        display: none; font-family: "Segoe UI", sans-serif;
-                    }
-                    
-                    .mes-menu-header { padding: 10px; border-bottom: 1px solid #eee; background: #f9f9f9; font-weight: bold; color: #333; display: flex; justify-content: space-between; align-items: center; }
-                    
-                    .mes-col-item { display: flex; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; background: #fff; transition: background 0.2s; }
-                    .mes-col-item:hover { background: #e6f7ff; }
-                    .mes-col-item.dragging { opacity: 0.5; background: #eee; }
-                    
-                    .mes-col-drag-handle { cursor: move; color: #999; margin-right: 8px; font-size: 14px; }
-                    .mes-col-checkbox { cursor: pointer; margin-right: 8px; }
-                    .mes-col-label { flex: 1; font-size: 13px; color: #333; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-                    
-                    /* [新功能] 排序与筛选 UI */
-                    .mes-col-actions { display: flex; gap: 4px; margin-left: 8px; }
-                    .mes-action-btn { cursor: pointer; padding: 2px; color: #999; border-radius: 2px; font-size: 12px; }
-                    .mes-action-btn:hover { background: #ddd; color: #333; }
-                    .mes-filter-input { width: 60px; border: 1px solid #ddd; border-radius: 2px; padding: 1px 4px; font-size: 11px; transition: width 0.2s; }
-                    .mes-filter-input:focus { width: 100px; border-color: #1890ff; outline: none; }
                 ` : '';
 
                 style.textContent = `
                     /* === 基础高亮 === */
                     .mes-highlight { background-color: ${cfg.highlightBackground || '#eef'} !important; color: ${cfg.highlightColor} !important; border: 1px solid ${cfg.highlightColor}; border-radius: 4px; padding: 2px 5px !important; }
                     
-                    /* === 表格样式 === */
-                    #tbDetail table { 
-                        /* 启用管理器时必须 fixed，否则 auto；如果未启用管理器但要截断，也建议 fixed */
-                        table-layout: ${cfg.tableManagerEnabled ? 'fixed' : 'auto'}; 
-                        width: 100%; border-collapse: collapse;
-                    }
-                    
-                    #tbDetail th, #tbDetail td {
-                        border: 1px solid #ccc;
-                        padding: 4px 5px;
-                        position: relative;
-                    }
+                    /* === 表格基础 === */
+                    #tbDetail table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
+                    #tbDetail th, #tbDetail td { border: 1px solid #e8e8e8; padding: 8px 8px; position: relative; font-size: 12px; }
 
-                    /* === 融合模式：单行截断 === */
-                    .mes-table-cell-fix { 
-                        white-space: nowrap !important; 
-                        overflow: hidden; 
-                        text-overflow: ellipsis;
-                        display: block; 
-                        width: 100%;
-                        box-sizing: border-box;
-                    }
-
+                    /* === 单行截断 === */
+                    .mes-table-cell-fix { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; box-sizing: border-box; }
                     .mes-truncated-cell { cursor: pointer; }
-                    .mes-truncated-cell:hover { background-color: rgba(0, 120, 215, 0.1); }
+                    .mes-truncated-cell:hover { color: #0078d7; font-weight: 500; }
                     .mes-col-hidden { display: none !important; }
 
-                    /* === 注入动态生成的 CSS === */
                     ${stickyCss}
-                    ${managerCss}
 
-                    /* Tooltip 样式 */
+                    /* === 调整手柄 === */
+                    .mes-resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: col-resize; z-index: 21; background: transparent; transition: background 0.2s; }
+                    .mes-resize-handle:hover, .mes-resize-active { background: rgba(24, 144, 255, 0.3); }
+                    
+                    /* === 设置按钮 === */
+                    #mes-col-settings-btn {
+                        /* float: right;  <-- 删掉 float */
+                        cursor: pointer; padding: 2px 10px;
+                        border: 1px solid #d9d9d9; background: #fff; border-radius: 4px;
+                        color: #666; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;
+                        position: relative; transition: all 0.3s;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                        user-select: none;
+                        /* vertical-align: middle; */
+                    }
+                    #mes-col-settings-btn:hover { color: #40a9ff; border-color: #40a9ff; }
+                    
+                    /* [新增] 按钮脏状态 (有修改时) - 橙色警示 */
+                    #mes-col-settings-btn.is-dirty {
+                        color: #fa8c16; border-color: #fa8c16; background: #fff7e6; font-weight: 600;
+                    }
+                    /* 红点提示 */
+                    #mes-col-settings-btn.is-dirty::after {
+                        content: ''; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px;
+                        background: #ff4d4f; border-radius: 50%; border: 1px solid #fff;
+                    }
+
+                    /* === 菜单 === */
+                    #mes-col-settings-menu {
+                        position: absolute; display: none; background: white; border: 1px solid #f0f0f0; 
+                        box-shadow: 0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08);
+                        padding: 0; border-radius: 4px; z-index: 999999;
+                        min-width: 340px; max-height: 500px; overflow-y: auto;
+                        font-family: "Segoe UI", sans-serif;
+                    }
+                    .mes-menu-header { 
+                        padding: 10px 16px; border-bottom: 1px solid #f0f0f0; background: #fff; 
+                        font-weight: 600; color: #333; display: flex; justify-content: space-between; align-items: center;
+                        position: sticky; top: 0; z-index: 10;
+                    }
+                    .mes-col-item { display: flex; align-items: center; padding: 8px 16px; border-bottom: 1px solid #f9f9f9; background: #fff; transition: background 0.2s; }
+                    .mes-col-item:hover { background: #fafafa; }
+                    .mes-col-item.dragging { opacity: 0.5; background: #e6f7ff; border: 1px dashed #1890ff; }
+                    .mes-col-drag-handle { cursor: grab; color: #bfbfbf; margin-right: 8px; font-size: 14px; }
+                    .mes-col-checkbox { cursor: pointer; margin-right: 10px; width: 14px; height: 14px; accent-color: #1890ff; }
+                    .mes-col-label { flex: 1; font-size: 13px; color: #333; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;}
+
+                    /* === 排序与筛选 UI === */
+                    .mes-col-actions { display: flex; align-items: center; gap: 4px; }
+                    .mes-action-btn { 
+                        cursor: pointer; padding: 2px 6px; color: #d9d9d9; border-radius: 3px; font-size: 12px; border: 1px solid transparent; transition: all 0.2s;
+                    }
+                    .mes-action-btn:hover { color: #666; background: #f0f0f0; }
+                    
+                    /* 高亮排序状态 */
+                    .mes-action-btn.active { color: #fff; background: #1890ff; border-color: #1890ff; }
+                    
+                    .mes-filter-input { width: 60px; border: 1px solid #d9d9d9; border-radius: 2px; padding: 2px 4px; font-size: 12px; transition: all 0.3s; }
+                    .mes-filter-input:focus { width: 100px; border-color: #40a9ff; outline: none; }
+                    .mes-filter-input.active { border-color: #fa8c16; background: #fff7e6; }
+
+                    /* Tooltip */
                     #mes-smart-tooltip {
                         position: fixed; z-index: 100000; background: rgba(0, 0, 0, 0.85); color: #fff;
-                        padding: 8px 12px; border-radius: 4px; font-size: 12px; line-height: 1.5;
+                        padding: 6px 12px; border-radius: 2px; font-size: 12px; line-height: 1.5;
                         max-width: 400px; word-wrap: break-word; pointer-events: none;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.15s;
+                        box-shadow: 0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08); opacity: 0; transition: opacity 0.1s;
                     }
                     #mes-smart-tooltip::after { content: ''; position: absolute; border-width: 5px; border-style: solid; }
                     #mes-smart-tooltip.is-top::after { bottom: -10px; left: 50%; transform: translateX(-50%); border-color: rgba(0,0,0,0.85) transparent transparent transparent; }
@@ -362,18 +342,16 @@
         // --- 智能 Tooltip ---
         SmartTooltip: {
             el: null, timer: null,
-            init: function () {
+            init: function() {
                 Utils.waitDOM(() => {
                     if (!document.getElementById('mes-smart-tooltip')) {
                         this.el = document.createElement('div');
                         this.el.id = 'mes-smart-tooltip';
                         document.body.appendChild(this.el);
-                    } else {
-                        this.el = document.getElementById('mes-smart-tooltip');
-                    }
+                    } else { this.el = document.getElementById('mes-smart-tooltip'); }
                 });
             },
-            show: function (target, content) {
+            show: function(target, content) {
                 if (!this.el) return;
                 clearTimeout(this.timer);
                 this.el.textContent = content;
@@ -384,82 +362,108 @@
                 let top = rect.bottom + gap;
                 let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
                 let placement = 'bottom';
-                if (top + tooltipRect.height > window.innerHeight) {
-                    top = rect.top - tooltipRect.height - gap;
-                    placement = 'top';
-                }
+                if (top + tooltipRect.height > window.innerHeight) { top = rect.top - tooltipRect.height - gap; placement = 'top'; }
                 if (left < 10) left = 10;
                 else if (left + tooltipRect.width > window.innerWidth - 10) left = window.innerWidth - tooltipRect.width - 10;
                 this.el.style.top = top + 'px';
                 this.el.style.left = left + 'px';
                 this.el.className = 'is-' + placement;
             },
-            hide: function () {
+            hide: function() {
                 if (!this.el) return;
-                this.timer = setTimeout(() => {
-                    this.el.style.opacity = '0';
-                }, 100);
+                this.timer = setTimeout(() => { this.el.style.opacity = '0'; }, 100);
             }
         },
 
-        // --- 表格管理器 (高级功能) ---
+        // --- 表格管理器 (核心) ---
         TableManager: {
             settings: {}, parentUI: null, dragSrcEl: null,
+            // 运行时状态 (不持久化)
+            sortState: { colIndex: -1, direction: 'none' }, // none, asc, desc
+            filterState: {}, // { colIndex: 'text' }
 
-            init: function (parent) {
+            init: function(parent) {
                 this.parentUI = parent;
-                const saved = localStorage.getItem('MES_TABLE_SETTINGS');
-                if (saved) {
-                    try {
-                        this.settings = JSON.parse(saved);
-                    } catch (e) {
-                    }
+                // [修改] 只有当开启了"保存视图设置"时，才从 localStorage 读取
+                // 否则 settings 保持为空，刷新即重置
+                if (parent.config.saveViewSettings) {
+                    const saved = localStorage.getItem('MES_TABLE_SETTINGS');
+                    if (saved) { try { this.settings = JSON.parse(saved); } catch(e) {} }
                 }
             },
 
-            // 检查当前页面是否有自定义设置
-            hasUserConfig: function (pageKey) {
+            // 检查是否有用户修改
+            isDirty: function(pageKey) {
+                // 1. 运行时状态
+                if (this.sortState.direction !== 'none') return true;
+                if (Object.keys(this.filterState).some(k => this.filterState[k])) return true;
+
+                // 2. 持久化配置
                 const config = this.settings[pageKey];
                 if (!config) return false;
-                // 只要有隐藏列、或者宽度的设定、或者排序设定，就算有配置
-                return (config.hidden && config.hidden.length > 0) ||
-                    (config.widths && Object.keys(config.widths).length > 0) ||
-                    (config.order && config.order.length > 0);
+
+                // 只要隐藏了列，绝对是脏的
+                if (config.hidden && config.hidden.length > 0) return true;
+
+                // 只要保存了顺序数组（说明拖拽过），认为是脏的
+                // (只有点击"重置"才会清除这个数组)
+                if (config.order && config.order.length > 0) return true;
+
+                return false;
             },
 
-            process: function () {
+            process: function() {
                 const tb = document.getElementById('tbDetail');
                 if (!tb) return;
                 const table = tb.querySelector('table');
                 if (!table) return;
 
-                if (table.dataset.mesEnhanced === 'true') return;
-                table.dataset.mesEnhanced = 'true';
+                // [关键] 如果检测到新表格 (dataset标记不同)，重置运行时状态
+                // 原网页每次查询都会替换 innerHTML，这里利用这个特性
+                if (table.dataset.mesEnhanced !== 'true') {
+                    // 重置排序和筛选状态，因为数据变了，之前的排序已经失效
+                    this.sortState = { colIndex: -1, direction: 'none' };
+                    this.filterState = {};
 
+                    // 给所有行添加原始索引，方便取消排序时恢复
+                    Array.from(table.rows).forEach((row, idx) => {
+                        if(idx > 0) row.dataset.mesOriginalIdx = idx;
+                    });
+                } else {
+                    return; // 已经处理过，跳过
+                }
+
+                table.dataset.mesEnhanced = 'true';
                 const pageKey = location.pathname + location.search;
 
-                // 1. 只有开启了管理器且没有保存宽度时，才自动计算初始宽度
+                // 1. 初始宽度
                 if (!this.settings[pageKey] || !this.settings[pageKey].widths) {
                     this.calculateAutoWidths(table, pageKey);
                 }
 
-                // 2. 应用设置
+                // 2. 应用保存的配置
                 this.applyColumnSettings(table, pageKey);
 
-                // 3. 注入功能
-                this.injectResizeHandles(table, pageKey);
-                this.injectSettingsButton(pageKey, table);
+                // 3. 注入交互组件
+                if (this.parentUI.config.tableManagerEnabled) {
+                    this.injectResizeHandles(table, pageKey);
+                    this.injectSettingsButton(pageKey, table);
+                } else {
+                    // 即使没开管理器，为了融合模式的截断，也要处理单元格
+                }
 
-                // 4. 更新单元格交互（截断/Tooltip）
+                // 4. 应用单元格样式 (截断/Tooltip)
                 this.applyCellInteractions(table);
+
+                // 更新按钮状态
+                this.updateBtnState(pageKey);
             },
 
-            calculateAutoWidths: function (table, pageKey) {
+            calculateAutoWidths: function(table, pageKey) {
                 table.style.tableLayout = 'auto';
                 const headers = Array.from(table.rows[0].cells);
                 const widths = {};
-                const MAX_WIDTH = 300;
-                const MIN_WIDTH = 50;
+                const MAX_WIDTH = 300; const MIN_WIDTH = 60;
                 headers.forEach(th => {
                     let w = th.offsetWidth;
                     if (w > MAX_WIDTH) w = MAX_WIDTH;
@@ -471,7 +475,7 @@
                 table.style.tableLayout = 'fixed';
             },
 
-            applyColumnSettings: function (table, pageKey) {
+            applyColumnSettings: function(table, pageKey) {
                 const config = this.settings[pageKey];
                 if (!config) return;
 
@@ -502,18 +506,15 @@
                             fragment.appendChild(cell);
                         }
                     });
-                    row.innerHTML = '';
-                    row.appendChild(fragment);
+                    row.innerHTML = ''; row.appendChild(fragment);
                 });
             },
 
-            applyCellInteractions: function (table) {
+            applyCellInteractions: function(table) {
                 const config = this.parentUI.config;
                 const truncateLen = config.tbTruncateThreshold || 30;
                 let dateCols = [];
                 const headerRow = table.rows[0];
-
-                // 重新获取当前表头顺序对应的索引（因为可能重排了）
                 Array.from(headerRow.cells).forEach((th, idx) => {
                     const txt = th.innerText.toLowerCase();
                     if (txt.includes('time') || txt.includes('date')) dateCols.push(idx);
@@ -549,179 +550,85 @@
                 });
             },
 
-            injectSettingsButton: function (pageKey, table) {
+            injectSettingsButton: function(pageKey, table) {
                 const pageDiv = document.getElementById('divpage');
+                // 找分页下拉框，插在它后面
+                const targetEl = document.getElementById('dplPageIndex');
+
                 if (!pageDiv || document.getElementById('mes-col-settings-btn')) return;
 
                 const btn = document.createElement('div');
                 btn.id = 'mes-col-settings-btn';
-                btn.innerHTML = `<span>🛠️</span> 列设置`;
+                btn.innerHTML = `<span>⚙️</span> 视图`;
+                btn.title = "点击配置列显示与排序";
 
-                // [新功能] 检查状态，如果用户改过设置，高亮按钮
-                if (this.hasUserConfig(pageKey)) {
-                    btn.classList.add('is-active');
-                    btn.title = "当前应用了自定义列设置";
-                }
+                this.updateBtnState(pageKey);
 
+                // 创建 Wrapper (inline-block)
                 const wrapper = document.createElement('div');
-                wrapper.style.cssText = "float:right; position:relative; display:inline-block;";
+                // margin-left: 10px 让它跟分页下拉框有点距离
+                wrapper.style.cssText = "position:relative; display:inline-block; margin-left: 15px; vertical-align: middle;";
                 wrapper.appendChild(btn);
 
                 const menu = document.createElement('div');
                 menu.id = 'mes-col-settings-menu';
                 wrapper.appendChild(menu);
 
-                pageDiv.insertBefore(wrapper, pageDiv.firstChild);
+                // [关键修改] 插入到下拉框后面，而不是 divpage 最前面
+                if (targetEl && targetEl.nextSibling) {
+                    targetEl.parentNode.insertBefore(wrapper, targetEl.nextSibling);
+                } else {
+                    pageDiv.appendChild(wrapper); // 兜底
+                }
 
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    this.renderMenuContent(menu, pageKey, table);
-                    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                    const isVisible = menu.style.display === 'block';
+                    if (!isVisible) {
+                        this.renderMenuContent(menu, pageKey, table);
+                        menu.style.display = 'block';
+
+                        // [智能定位 v2.0]
+                        menu.style.top = 'auto'; menu.style.bottom = 'auto'; menu.style.left = 'auto'; menu.style.right = 'auto';
+                        menu.style.maxHeight = 'none';
+
+                        const rect = btn.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
+                        const viewportWidth = window.innerWidth;
+
+                        const spaceBelow = viewportHeight - rect.bottom;
+                        const spaceAbove = rect.top;
+
+                        // 1. 垂直方向 (上/下)
+                        if (spaceAbove < 300 && spaceBelow > spaceAbove) {
+                            menu.style.top = '100%';
+                            menu.style.marginTop = '5px';
+                            menu.style.maxHeight = (spaceBelow - 20) + 'px';
+                        } else {
+                            menu.style.bottom = '100%';
+                            menu.style.marginBottom = '5px';
+                            menu.style.maxHeight = Math.min(500, spaceAbove - 20) + 'px';
+                        }
+
+                        // 2. 水平方向 (左/右)
+                        // 如果按钮太靠右，菜单就向左展开 (right: 0)
+                        // 如果按钮靠左，菜单向右展开 (left: 0)
+                        if (rect.left > viewportWidth / 2) {
+                            menu.style.right = '0'; // 右对齐
+                        } else {
+                            menu.style.left = '0';  // 左对齐
+                        }
+                    } else {
+                        menu.style.display = 'none';
+                    }
                 };
+
                 document.addEventListener('click', (e) => {
                     if (!wrapper.contains(e.target)) menu.style.display = 'none';
                 });
             },
 
-            renderMenuContent: function (menu, pageKey, table) {
-                menu.innerHTML = `<div class="mes-menu-header"><span>表格视图设置</span><span style="font-size:12px;font-weight:normal;color:#999">拖拽排序 / 勾选显示</span></div>`;
-
-                const list = document.createElement('div');
-                const headerCells = Array.from(table.rows[0].cells);
-                const currentOrder = headerCells.map(c => c.innerText.trim());
-
-                currentOrder.forEach((colName, idx) => {
-                    const item = document.createElement('div');
-                    item.className = 'mes-col-item';
-                    item.draggable = true;
-                    item.dataset.colName = colName;
-
-                    const cell = headerCells[idx];
-                    const isHidden = cell.classList.contains('mes-col-hidden');
-
-                    item.innerHTML = `
-                        <span class="mes-col-drag-handle">☰</span>
-                        <input type="checkbox" class="mes-col-checkbox" ${!isHidden ? 'checked' : ''}>
-                        <span class="mes-col-label" title="${colName}">${colName}</span>
-                        <div class="mes-col-actions">
-                            <span class="mes-action-btn sort-asc" title="当前页升序">⬆️</span>
-                            <span class="mes-action-btn sort-desc" title="当前页降序">⬇️</span>
-                            <input type="text" class="mes-filter-input" placeholder="筛选..." title="当前页筛选">
-                        </div>
-                    `;
-
-                    // 显隐事件
-                    item.querySelector('input').addEventListener('change', (e) => {
-                        this.toggleColumnVisibility(table, colName, !e.target.checked, pageKey);
-                        this.updateBtnState(pageKey);
-                    });
-
-                    // 排序事件 (Client Side Demo)
-                    item.querySelector('.sort-asc').onclick = () => this.sortColumn(table, idx, true);
-                    item.querySelector('.sort-desc').onclick = () => this.sortColumn(table, idx, false);
-
-                    // 筛选事件 (Client Side Demo)
-                    const filterInput = item.querySelector('.mes-filter-input');
-                    filterInput.addEventListener('click', e => e.stopPropagation()); // 防止拖拽
-                    filterInput.addEventListener('input', (e) => {
-                        this.filterColumn(table, idx, e.target.value);
-                    });
-
-                    this.bindDragEvents(item, list, table, pageKey);
-                    list.appendChild(item);
-                });
-                menu.appendChild(list);
-
-                const footer = document.createElement('div');
-                footer.style.padding = '8px 10px';
-                footer.style.borderTop = '1px solid #eee';
-                footer.style.textAlign = 'right';
-                footer.innerHTML = '<a href="javascript:;" style="color:#d93025;font-size:12px;text-decoration:none;">↺ 重置所有设置</a>';
-                footer.onclick = () => {
-                    if (confirm('恢复默认列宽和顺序？')) {
-                        delete this.settings[pageKey];
-                        this.persist();
-                        location.reload();
-                    }
-                };
-                menu.appendChild(footer);
-            },
-
-            // 简单的客户端排序 (功能预留)
-            sortColumn: function (table, colIdx, asc) {
-                const tbody = table.tBodies[0] || table;
-                const rows = Array.from(tbody.querySelectorAll('tr:not(#trfirst)')); // 排除表头
-
-                rows.sort((a, b) => {
-                    const txtA = a.cells[colIdx].innerText.trim();
-                    const txtB = b.cells[colIdx].innerText.trim();
-                    return asc ? txtA.localeCompare(txtB) : txtB.localeCompare(txtA);
-                });
-
-                rows.forEach(row => tbody.appendChild(row));
-            },
-
-            // 简单的客户端筛选 (功能预留)
-            filterColumn: function (table, colIdx, text) {
-                const rows = Array.from(table.querySelectorAll('tr:not(#trfirst)'));
-                const lowerText = text.toLowerCase();
-
-                rows.forEach(row => {
-                    const cellText = row.cells[colIdx].innerText.toLowerCase();
-                    if (cellText.includes(lowerText)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            },
-
-            updateBtnState: function (pageKey) {
-                const btn = document.getElementById('mes-col-settings-btn');
-                if (this.hasUserConfig(pageKey)) btn.classList.add('is-active');
-                else btn.classList.remove('is-active');
-            },
-
-            bindDragEvents: function (item, list, table, pageKey) {
-                item.addEventListener('dragstart', (e) => {
-                    this.dragSrcEl = item;
-                    e.dataTransfer.effectAllowed = 'move';
-                    item.classList.add('dragging');
-                });
-                item.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    return false;
-                });
-                item.addEventListener('dragenter', (e) => {
-                    if (this.dragSrcEl !== item) item.style.borderTop = '2px solid #0078d7';
-                });
-                item.addEventListener('dragleave', () => {
-                    item.style.borderTop = '';
-                });
-                item.addEventListener('drop', (e) => {
-                    e.stopPropagation();
-                    item.style.borderTop = '';
-                    if (this.dragSrcEl !== item) {
-                        const allItems = Array.from(list.querySelectorAll('.mes-col-item'));
-                        const srcIdx = allItems.indexOf(this.dragSrcEl);
-                        const tgtIdx = allItems.indexOf(item);
-                        if (srcIdx < tgtIdx) list.insertBefore(this.dragSrcEl, item.nextSibling);
-                        else list.insertBefore(this.dragSrcEl, item);
-                        this.saveOrderFromMenu(list, pageKey);
-                        this.applyColumnSettings(table, pageKey);
-                        this.updateBtnState(pageKey);
-                    }
-                    return false;
-                });
-                item.addEventListener('dragend', () => {
-                    item.classList.remove('dragging');
-                    list.querySelectorAll('.mes-col-item').forEach(i => i.style.borderTop = '');
-                });
-            },
-
-            // ... injectResizeHandles, bindResizeEvent, toggleColumnVisibility, getOrCreateConfig, saveWidth, saveHidden, saveOrderFromMenu, persist 保持不变 ...
-            injectResizeHandles: function (table, pageKey) {
+            injectResizeHandles: function(table, pageKey) {
                 Array.from(table.rows[0].cells).forEach(th => {
                     if (th.querySelector('.mes-resize-handle')) return;
                     const handle = document.createElement('div');
@@ -730,7 +637,8 @@
                     this.bindResizeEvent(handle, th, pageKey);
                 });
             },
-            bindResizeEvent: function (handle, th, pageKey) {
+
+            bindResizeEvent: function(handle, th, pageKey) {
                 let startX, startWidth;
                 const onMouseMove = (e) => {
                     const diff = e.pageX - startX;
@@ -744,24 +652,225 @@
                     this.updateBtnState(pageKey);
                 };
                 handle.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    startX = e.pageX;
-                    startWidth = th.offsetWidth;
+                    e.preventDefault(); e.stopPropagation();
+                    startX = e.pageX; startWidth = th.offsetWidth;
                     handle.classList.add('mes-resize-active');
                     document.addEventListener('mousemove', onMouseMove);
                     document.addEventListener('mouseup', onMouseUp);
                 });
                 handle.addEventListener('click', e => e.stopPropagation());
             },
-            toggleColumnVisibility: function (table, colName, hidden, pageKey) {
+
+            renderMenuContent: function(menu, pageKey, table) {
+                menu.innerHTML = `
+                    <div class="mes-menu-header">
+                        <span>自定义视图</span>
+                        <a href="javascript:;" id="mes-reset-btn" style="font-size:12px;font-weight:normal;color:#1890ff;text-decoration:none;">↺ 恢复默认</a>
+                    </div>
+                `;
+
+                const list = document.createElement('div');
+                const headerCells = Array.from(table.rows[0].cells);
+                // 获取当前实际显示的顺序
+                const currentOrder = headerCells.map(c => c.innerText.trim());
+
+                currentOrder.forEach((colName, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'mes-col-item';
+                    item.draggable = true;
+                    item.dataset.colName = colName;
+
+                    const cell = headerCells.find(c => c.innerText.trim() === colName);
+                    const isHidden = cell ? cell.classList.contains('mes-col-hidden') : false;
+                    const chkId = 'chk-' + Math.random().toString(36).substr(2, 9);
+
+                    // 状态判断
+                    const isSortedAsc = this.sortState.colIndex === idx && this.sortState.direction === 'asc';
+                    const isSortedDesc = this.sortState.colIndex === idx && this.sortState.direction === 'desc';
+                    const hasFilter = this.filterState[idx] && this.filterState[idx].length > 0;
+
+                    item.innerHTML = `
+                        <span class="mes-col-drag-handle" title="拖拽排序">⋮⋮</span>
+                        <input type="checkbox" id="${chkId}" class="mes-col-checkbox" ${!isHidden ? 'checked' : ''}>
+                        <label for="${chkId}" class="mes-col-label" title="${colName}">${colName}</label>
+                        <div class="mes-col-actions">
+                            <span class="mes-action-btn sort-asc ${isSortedAsc ? 'active' : ''}" title="升序">⬆️</span>
+                            <span class="mes-action-btn sort-desc ${isSortedDesc ? 'active' : ''}" title="降序">⬇️</span>
+                            <input type="text" class="mes-filter-input ${hasFilter ? 'active' : ''}" placeholder="筛选" value="${this.filterState[idx] || ''}">
+                        </div>
+                    `;
+
+                    // 绑定事件
+                    item.querySelector('input').addEventListener('change', (e) => {
+                        this.toggleColumnVisibility(table, colName, !e.target.checked, pageKey);
+                        this.updateBtnState(pageKey);
+                    });
+
+                    // [修改] 排序事件：三态切换 (点击高亮的会取消)
+                    item.querySelector('.sort-asc').onclick = () => this.handleSortClick(table, idx, 'asc', pageKey, menu);
+                    item.querySelector('.sort-desc').onclick = () => this.handleSortClick(table, idx, 'desc', pageKey, menu);
+
+                    // 筛选
+                    const filterInput = item.querySelector('.mes-filter-input');
+                    filterInput.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); });
+                    filterInput.addEventListener('input', (e) => {
+                        this.filterTableData(table, idx, e.target.value);
+                        this.updateBtnState(pageKey);
+                    });
+
+                    this.bindDragEvents(item, list, table, pageKey);
+                    list.appendChild(item);
+                });
+                menu.appendChild(list);
+
+                menu.querySelector('#mes-reset-btn').onclick = () => {
+                    if(confirm('恢复默认设置？（会清除所有宽度、顺序和筛选）')) {
+                        delete this.settings[pageKey];
+                        this.persist();
+                        location.reload();
+                    }
+                };
+            },
+
+            // [新增] 处理排序点击 (三态逻辑)
+            handleSortClick: function(table, colIdx, direction, pageKey, menu) {
+                // 如果点击的是当前已经激活的方向，则取消排序
+                if (this.sortState.colIndex === colIdx && this.sortState.direction === direction) {
+                    this.sortColumn(table, colIdx, 'none'); // 恢复默认
+                } else {
+                    this.sortColumn(table, colIdx, direction);
+                }
+                // 重新渲染菜单以更新高亮状态
+                this.renderMenuContent(menu, pageKey, table);
+                this.updateBtnState(pageKey);
+            },
+
+            sortColumn: function(table, colIdx, direction) {
+                this.sortState = { colIndex: colIdx, direction: direction };
+
+                const tbody = table.tBodies[0] || table;
+                const rows = Array.from(tbody.querySelectorAll('tr:not(#trfirst)'));
+
+                if (direction === 'none') {
+                    // 恢复原始顺序
+                    rows.sort((a, b) => {
+                        return (a.dataset.mesOriginalIdx || 0) - (b.dataset.mesOriginalIdx || 0);
+                    });
+                } else {
+                    const asc = direction === 'asc';
+                    rows.sort((a, b) => {
+                        const txtA = a.cells[colIdx] ? a.cells[colIdx].innerText.trim() : '';
+                        const txtB = b.cells[colIdx] ? b.cells[colIdx].innerText.trim() : '';
+
+                        const numA = parseFloat(txtA);
+                        const numB = parseFloat(txtB);
+
+                        if (!isNaN(numA) && !isNaN(numB)) {
+                            return asc ? numA - numB : numB - numA;
+                        }
+                        return asc ? txtA.localeCompare(txtB) : txtB.localeCompare(txtA);
+                    });
+                }
+
+                rows.forEach(row => tbody.appendChild(row));
+            },
+
+            filterTableData: function(table, colIdx, text) {
+                this.filterState[colIdx] = text; // 保存状态
+                const rows = Array.from(table.querySelectorAll('tr:not(#trfirst)'));
+                const lowerText = text.toLowerCase();
+
+                rows.forEach(row => {
+                    const cell = row.cells[colIdx];
+                    if (!cell) return;
+
+                    // 需要同时满足所有列的筛选条件 (AND 逻辑)
+                    let visible = true;
+                    for (const [fIdx, fText] of Object.entries(this.filterState)) {
+                        if (!fText) continue;
+                        const fCell = row.cells[fIdx];
+                        if (!fCell || !fCell.innerText.toLowerCase().includes(fText.toLowerCase())) {
+                            visible = false;
+                            break;
+                        }
+                    }
+
+                    row.style.display = visible ? '' : 'none';
+                });
+            },
+
+            updateBtnState: function(pageKey) {
+                const btn = document.getElementById('mes-col-settings-btn');
+                if (!btn) return;
+
+                // 获取当前原始表头顺序用于比对
+                let currentHeaders = null;
+                const tb = document.getElementById('tbDetail');
+                if (tb) {
+                    const table = tb.querySelector('table');
+                    if (table && table.rows.length > 0) {
+                        // 注意：这里需要获取 DOM 中目前的顺序，但 isDirty 需要比对的是"默认顺序"
+                        // 实际上，只要 config.order 存在且不为空，我们就认为用户调整过顺序（即使调回去了）
+                        // 为了简化逻辑，我们假设只要有 order 记录就算脏，除非我们存了原始 defaultOrder
+
+                        // 既然要严格判断，那我们修改策略：
+                        // 只要 localStorage 里有这个 key 且不为空，就算脏。
+                        // 或者更简单：相信 isDirty 的判断。
+
+                        // 这里我们传入 null，让 isDirty 只检查 hidden 和 runtime state
+                        // 如果你想检查 order，你需要在此处获取原始顺序。
+                        // 由于原始顺序在 process 时可能已经丢失（因为 DOM 被重排了），这比较难办。
+
+                        // === 修正方案 ===
+                        // 我们只检查 显式的 hidden 和 运行时的 sort/filter
+                        // 对于 order，只有当它与"当前DOM顺序"不一致时... 不对，当前DOM就是order后的。
+
+                        // 妥协方案：只要 config.order 有值，就认为脏。
+                        // 并在"重置"时清除 config.order。
+                    }
+                }
+
+                if (this.isDirty(pageKey)) {
+                    btn.classList.add('is-active');
+                    btn.classList.add('is-dirty');
+                    btn.title = "视图已修改 (有隐藏列、排序或筛选)";
+                } else {
+                    btn.classList.remove('is-active');
+                    btn.classList.remove('is-dirty');
+                    btn.title = "点击配置列";
+                }
+            },
+
+            bindDragEvents: function(item, list, table, pageKey) {
+                item.addEventListener('dragstart', (e) => {
+                    this.dragSrcEl = item; e.dataTransfer.effectAllowed = 'move';
+                    item.classList.add('dragging');
+                });
+                item.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; });
+                item.addEventListener('dragenter', (e) => { if(this.dragSrcEl !== item) item.style.background = '#e6f7ff'; });
+                item.addEventListener('dragleave', () => { item.style.background = ''; });
+                item.addEventListener('drop', (e) => {
+                    e.stopPropagation(); item.style.background = '';
+                    if (this.dragSrcEl !== item) {
+                        const allItems = Array.from(list.querySelectorAll('.mes-col-item'));
+                        const srcIdx = allItems.indexOf(this.dragSrcEl);
+                        const tgtIdx = allItems.indexOf(item);
+                        if (srcIdx < tgtIdx) list.insertBefore(this.dragSrcEl, item.nextSibling);
+                        else list.insertBefore(this.dragSrcEl, item);
+                        this.saveOrderFromMenu(list, pageKey);
+                        this.applyColumnSettings(table, pageKey);
+                        this.updateBtnState(pageKey);
+                    }
+                    return false;
+                });
+                item.addEventListener('dragend', () => { item.classList.remove('dragging'); list.querySelectorAll('.mes-col-item').forEach(i => i.style.background = ''); });
+            },
+
+            toggleColumnVisibility: function(table, colName, hidden, pageKey) {
                 const headerCells = Array.from(table.rows[0].cells);
                 let targetIndex = -1;
                 for (let i = 0; i < headerCells.length; i++) {
-                    if (headerCells[i].innerText.trim() === colName) {
-                        targetIndex = i;
-                        break;
-                    }
+                    if (headerCells[i].innerText.trim() === colName) { targetIndex = i; break; }
                 }
                 if (targetIndex !== -1) {
                     Array.from(table.rows).forEach(row => {
@@ -773,57 +882,121 @@
                     this.saveHidden(pageKey, colName, hidden);
                 }
             },
-            getOrCreateConfig: function (pageKey) {
-                if (!this.settings[pageKey]) this.settings[pageKey] = {order: [], hidden: [], widths: {}};
+
+            getOrCreateConfig: function(pageKey) {
+                if (!this.settings[pageKey]) this.settings[pageKey] = { order: [], hidden: [], widths: {} };
                 return this.settings[pageKey];
             },
-            saveWidth: function (pageKey, colName, width) {
+            saveWidth: function(pageKey, colName, width) {
                 const cfg = this.getOrCreateConfig(pageKey);
                 if (!cfg.widths) cfg.widths = {};
                 cfg.widths[colName] = width;
                 this.persist();
             },
-            saveHidden: function (pageKey, colName, isHidden) {
+            saveHidden: function(pageKey, colName, isHidden) {
                 const cfg = this.getOrCreateConfig(pageKey);
                 if (!cfg.hidden) cfg.hidden = [];
-                if (isHidden) {
-                    if (!cfg.hidden.includes(colName)) cfg.hidden.push(colName);
-                } else {
-                    cfg.hidden = cfg.hidden.filter(c => c !== colName);
-                }
+                if (isHidden) { if (!cfg.hidden.includes(colName)) cfg.hidden.push(colName); }
+                else { cfg.hidden = cfg.hidden.filter(c => c !== colName); }
                 this.persist();
             },
-            saveOrderFromMenu: function (menuList, pageKey) {
+            saveOrderFromMenu: function(menuList, pageKey) {
                 const cfg = this.getOrCreateConfig(pageKey);
                 const items = Array.from(menuList.querySelectorAll('.mes-col-item'));
                 cfg.order = items.map(el => el.dataset.colName);
                 this.persist();
             },
-            persist: function () {
-                localStorage.setItem('MES_TABLE_SETTINGS', JSON.stringify(this.settings));
+            persist: function() {
+                // [修改] 仅当配置允许时才写入 localStorage
+                if (this.parentUI.config.saveViewSettings) {
+                    localStorage.setItem('MES_TABLE_SETTINGS', JSON.stringify(this.settings));
+                }
+            },
+
+            // 主入口
+            fixTable: function () {
+                if (!this.config.tbFixEnabled) return;
+                this.TableManager.process();
             }
         },
 
-        // [修改] fixTable 逻辑
-        fixTable: function () {
-            // 如果开启了高级管理器
-            if (this.config.tableManagerEnabled) {
-                this.TableManager.process();
-            } else if (this.config.tbFixEnabled) {
-                // 如果只开启了基础优化（但没有管理器），我们只应用简单的截断样式
-                // 这里为了简单，我们让 process 内部处理降级，或者这里写一个简单的 loop
-                // 鉴于你想要融合，建议这里只调用 process，让 process 内部判断配置
-                // 为了兼容旧配置，我们可以强制运行 applyCellInteractions
-                // 但简单起见，建议用户在 Option 里两个都勾上。
-
-                // 这里保留一个简单的 fallback：如果没开管理器，只做截断，不支持拖拽
-                const tb = document.getElementById('tbDetail');
-                if (!tb) return;
-                const table = tb.querySelector('table');
-                if (!table || table.dataset.mesEnhanced === 'true') return;
-                table.dataset.mesEnhanced = 'true';
-                this.TableManager.applyCellInteractions(table);
+        // 占位函数
+        setupModalContainer: function() {
+            if (!document.getElementById('mes-modal-container')) {
+                const c = document.createElement('div');
+                c.id = 'mes-modal-container';
+                document.body.appendChild(c);
             }
+        },
+        showOverlay: function(msg, isError) {
+            Utils.waitDOM(() => {
+                let overlay = document.getElementById('mes-relogin-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'mes-relogin-overlay';
+                    overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 999999; display: flex; justify-content: center; align-items: center; font-size: 20px; color: #333; font-family: "Segoe UI"; flex-direction: column;`;
+                    document.body.appendChild(overlay);
+                }
+                overlay.innerHTML = `<div style="text-align:center;"><div style="font-size: 40px; margin-bottom: 20px;">${isError ? '⚠️' : '🍪'}</div><div>${msg}</div>${isError ? '<br><a href="Login.aspx" style="color:#0078d7; font-size:16px;">转到登录页</a>' : ''}</div>`;
+            });
+        },
+        showDetailModal: function(content) {
+            const container = document.getElementById('mes-modal-container');
+            if (!container) return;
+            container.innerHTML = `<div class="mes-modal-overlay" id="mes-modal-close-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;display:flex;justify-content:center;align-items:center;"><div class="mes-modal-content" style="background:white;padding:20px;border-radius:8px;width:600px;max-height:80vh;display:flex;flex-direction:column;"><div style="display:flex;justify-content:space-between;margin-bottom:15px;border-bottom:1px solid #eee;"><h3 style="margin:0;color:#0078d7;">📄 完整内容</h3><span id="mes-modal-close-btn" style="cursor:pointer;font-size:24px;">×</span></div><div id="mes-modal-text" style="flex:1;overflow-y:auto;padding:10px;background:#f9f9f9;border:1px solid #eee;white-space:pre-wrap;word-break:break-all;">${Utils.escapeHtml(content)}</div><div style="margin-top:15px;text-align:right;"><span id="mes-copy-tip" style="color:green;margin-right:10px;opacity:0;transition:opacity 0.5s;">✅ 已复制!</span><button id="mes-btn-copy" style="padding:6px 15px;background:#0078d7;color:white;border:none;border-radius:4px;cursor:pointer;">复制</button></div></div></div>`;
+            const close = () => container.innerHTML = '';
+            document.getElementById('mes-modal-close-btn').onclick = close;
+            document.getElementById('mes-modal-close-overlay').onclick = (e) => { if (e.target.id === 'mes-modal-close-overlay') close(); };
+            document.getElementById('mes-btn-copy').onclick = () => {
+                Utils.copyText(document.getElementById('mes-modal-text').innerText, () => {
+                    const tip = document.getElementById('mes-copy-tip');
+                    if(tip) { tip.style.opacity = 1; setTimeout(() => tip.style.opacity = 0, 2000); }
+                });
+            };
+        },
+        bindMenu: function() {
+            if (!this.config.highlightEnabled) return;
+            document.querySelectorAll('#treeFunc a, a[href*=".aspx"]').forEach(link => {
+                if (link.dataset.mesBound) return;
+                const href = (link.getAttribute('href') || '').trim();
+                const target = link.getAttribute('target');
+                if (href.toLowerCase().startsWith('javascript') || (target !== 'mainFrame' && !link.classList.contains('a02'))) { link.dataset.mesBound = "ignored"; return; }
+                link.dataset.mesBound = "true";
+                link.addEventListener('click', function () {
+                    document.querySelectorAll('.mes-highlight').forEach(el => el.classList.remove('mes-highlight'));
+                    this.classList.add('mes-highlight');
+                    const saveHref = href.replace(/^(\.\/|\/)/, '');
+                    chrome.storage.local.set({'mes_last_selected_href': saveHref});
+                });
+            });
+        },
+        restoreMenu: function() {
+            chrome.storage.local.get(['mes_last_selected_href'], (result) => {
+                const lastHref = result.mes_last_selected_href;
+                if (!lastHref) return;
+                const link = document.querySelector(`a[href*="${lastHref}"]`);
+                if (link) {
+                    document.querySelectorAll('.mes-highlight').forEach(el => el.classList.remove('mes-highlight'));
+                    link.classList.add('mes-highlight');
+                    let p = link.parentElement; let safe = 0;
+                    while (p && safe < 50) {
+                        safe++;
+                        if (p.tagName === 'DIV' && p.id && /^treeFuncn\d+Nodes$/.test(p.id)) {
+                            p.style.display = 'block'; const idx = p.id.match(/^treeFuncn(\d+)Nodes$/)[1];
+                            const toggle = document.getElementById('treeFunct' + idx);
+                            if(toggle) toggle.classList.add('mes-menu-open');
+                        }
+                        p = p.parentElement;
+                    }
+                    link.scrollIntoView({block: 'center', behavior: 'smooth'});
+                }
+            });
+        },
+
+        // 主入口
+        fixTable: function () {
+            if (!this.config.tbFixEnabled) return;
+            this.TableManager.process();
         }
     };
 

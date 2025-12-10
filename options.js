@@ -3,6 +3,7 @@ const DEFAULT_CFG = {
     password: '',
     keepAliveEnabled: false, // [不掉登录 账号保活] 默认关闭
     tableManagerEnabled: true, // 表格管理
+    saveViewSettings: false, // 默认不保存
     stickyHeaderEnabled: true, // 顶栏固定
     highlightColor: '#0078d7',
     highlightBackground: 'rgba(0,120,215,0.08)',
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cfg-keep-alive').checked = cfg.keepAliveEnabled;
         // 顶栏固定
         document.getElementById('cfg-table-manager').checked = cfg.tableManagerEnabled;
+        document.getElementById('cfg-save-view').checked = cfg.saveViewSettings;
         document.getElementById('cfg-sticky-header').checked = cfg.stickyHeaderEnabled;
         document.getElementById('cfg-highlight-enable').checked = cfg.highlightEnabled;
         document.getElementById('cfg-color').value = cfg.highlightColor;
@@ -46,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             keepAliveEnabled: document.getElementById('cfg-keep-alive').checked,
             // 保存固定表头配置
             tableManagerEnabled: document.getElementById('cfg-table-manager').checked,
+            saveViewSettings: document.getElementById('cfg-save-view').checked,
             stickyHeaderEnabled: document.getElementById('cfg-sticky-header').checked,
             highlightEnabled: document.getElementById('cfg-highlight-enable').checked,
             highlightColor: document.getElementById('cfg-color').value,
