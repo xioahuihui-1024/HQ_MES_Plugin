@@ -1,3 +1,16 @@
+
+:root {
+    --mes-highlight-color: #0078d7;
+}
+
+/* 强制覆盖 MES 表格默认样式 */
+#tbDetail table tr td.mes-truncated-cell {
+    max-width: 320px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
 /* ================= 菜单高亮基础样式 ================= */
 .mes-highlight {
     position: relative !important;
