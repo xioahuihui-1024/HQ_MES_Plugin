@@ -22,7 +22,7 @@
 
 /* 强制截断的单元格样式 */
 .mes-truncated-cell {
-    max-width: 250px !important; /* 限制最大宽度，强制触发截断 */
+    /*max-width: 250px !important; !* 限制最大宽度，强制触发截断 *!*/
     white-space: nowrap !important; /* 不许换行 */
     overflow: hidden !important;    /* 超出隐藏 */
     text-overflow: ellipsis !important; /* 显示省略号 */
