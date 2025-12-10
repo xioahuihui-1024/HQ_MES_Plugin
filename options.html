@@ -44,7 +44,7 @@
             <label style="color: #d9534f;">
                 <input type="checkbox" id="cfg-keep-alive"> 启用永久保活 (无感自动重登)
             </label>
-            <div class="help-text">开启后，当系统提示“没有用户状态”时，会自动在后台登录并刷新页面，除非您手动点击了退出。</div>
+            <div class="help-text">开启后，会自动在后台登录并刷新页面，除非您手动点击了退出。</div>
         </div>
         <button id="btn-refresh-cookie" class="btn btn-primary">🔄 登录刷新 Cookie</button>
         <div id="login-status" class="status-msg"></div>
@@ -63,11 +63,28 @@
 
     <div class="section">
         <h3>📊 表格优化</h3>
+
         <div class="form-group">
-            <label><input type="checkbox" id="cfg-date-format-enable"> 启用日期时间格式化</label>
+            <label><input type="checkbox" id="cfg-tb-enable"> 启用表格样式增强</label>
         </div>
+
         <div class="form-group">
-            <label>日期时间显示格式</label>
+            <label>单元格截断阈值 (字符数)</label>
+            <label for="cfg-tb-truncate"></label><input type="number" id="cfg-tb-truncate" min="10">
+            <div class="help-text">超过此长度的文本将显示省略号，鼠标悬停显示Tip，点击弹出详情窗口。建议值: 30-50。</div>
+        </div>
+
+        <div class="form-group">
+            <label><input type="checkbox" id="cfg-sticky-header"> 📌 启用固定表头 (滚动时锁定首行)</label>
+            <label><input type="checkbox" id="cfg-table-manager"> 🛠️ 启用高级表格管理 (拖拽/排序/隐藏)</label>
+        </div>
+
+        <div class="form-group">
+            <label><input type="checkbox" id="cfg-date-format-enable"> 启用表格日期时间格式化</label>
+        </div>
+
+        <div class="form-group">
+            <label>表格日期时间显示格式</label>
             <label for="cfg-date-format"></label><input type="text" id="cfg-date-format" list="date-formats" placeholder="双击选择或直接输入...">
             <datalist id="date-formats">
                 <option value="YYYY-MM-DD HH:mm:ss">标准 (2025-11-20 18:48:17)</option>
@@ -80,14 +97,7 @@
             <div class="help-text">支持代码: Y(年1-4位), MM(月), DD(日), HH(时), mm(分), ss(秒)</div>
         </div>
 
-        <div class="form-group">
-            <label><input type="checkbox" id="cfg-tb-enable"> 启用表格样式增强</label>
-        </div>
-        <div class="form-group">
-            <label>单元格截断阈值 (字符数)</label>
-            <label for="cfg-tb-truncate"></label><input type="number" id="cfg-tb-truncate" min="10">
-            <div class="help-text">超过此长度的文本将显示省略号，鼠标悬停显示Tip，点击弹出详情窗口。建议值: 30-50。</div>
-        </div>
+
     </div>
 
     <button id="btn-save" class="btn btn-save">💾 保存所有配置</button>

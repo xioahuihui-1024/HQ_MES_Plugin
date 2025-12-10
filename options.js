@@ -2,6 +2,8 @@ const DEFAULT_CFG = {
     username: '',
     password: '',
     keepAliveEnabled: false, // [不掉登录 账号保活] 默认关闭
+    tableManagerEnabled: true, // 表格管理
+    stickyHeaderEnabled: true, // 顶栏固定
     highlightColor: '#0078d7',
     highlightBackground: 'rgba(0,120,215,0.08)',
     highlightEnabled: true,
@@ -20,8 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('cfg-user').value = cfg.username;
         document.getElementById('cfg-pwd').value = cfg.password;
-        // [新增] 回显保活开关
+        // 回显保活开关
         document.getElementById('cfg-keep-alive').checked = cfg.keepAliveEnabled;
+        // 顶栏固定
+        document.getElementById('cfg-table-manager').checked = cfg.tableManagerEnabled;
+        document.getElementById('cfg-sticky-header').checked = cfg.stickyHeaderEnabled;
         document.getElementById('cfg-highlight-enable').checked = cfg.highlightEnabled;
         document.getElementById('cfg-color').value = cfg.highlightColor;
         document.getElementById('cfg-tb-enable').checked = cfg.tbFixEnabled;
@@ -39,6 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
             password: document.getElementById('cfg-pwd').value,
             // 保存保活开关
             keepAliveEnabled: document.getElementById('cfg-keep-alive').checked,
+            // 保存固定表头配置
+            tableManagerEnabled: document.getElementById('cfg-table-manager').checked,
+            stickyHeaderEnabled: document.getElementById('cfg-sticky-header').checked,
             highlightEnabled: document.getElementById('cfg-highlight-enable').checked,
             highlightColor: document.getElementById('cfg-color').value,
             highlightBackground: hexToRgba(document.getElementById('cfg-color').value, 0.1),
