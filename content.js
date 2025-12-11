@@ -48,7 +48,10 @@
             const Y = raw.slice(0, 4), M = raw.slice(4, 6), D = raw.slice(6, 8);
             const H = raw.slice(8, 10), m = raw.slice(10, 12), s = raw.slice(12, 14);
             return formatStr
-                .replace(/YYYY/g, Y).replace(/YY/g, Y.slice(2))
+                .replace(/YYYY/g, Y)
+                .replace(/YYY/g, Y.slice(1))
+                .replace(/YY/g, Y.slice(2))
+                .replace(/Y/g, Y.slice(3))
                 .replace(/MM/g, M).replace(/DD/g, D)
                 .replace(/HH/g, H).replace(/mm/g, m).replace(/ss/g, s)
                 .replace(/M(?!M)/g, parseInt(M)).replace(/D(?!D)/g, parseInt(D));
