@@ -2,7 +2,6 @@
   "manifest_version": 3,
   "name": "MES 助手 Pro",
   "version": "3.0.1",
-  "default_locale": "zh_CN",
   "description": "专为 MES 系统打造的增强工具。提供无感自动登录、断线请求重放、表格列拖拽排序/筛选、固定表头及智能数据展示功能，大幅提升工作效率。",
     "icons": {
     "16": "icons/icon16.png",
