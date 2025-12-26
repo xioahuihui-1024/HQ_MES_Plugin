@@ -2,458 +2,717 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MES 优化助手 - 设置</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: "Segoe UI", "Microsoft YaHei", sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 24px; 
-            color: #333; 
+        :root {
+            /* 设计系统变量 */
+            --primary-color: #6366f1; /* Indigo */
+            --primary-hover: #4f46e5;
+            --success-color: #10b981;
+            --bg-color: #f3f4f6;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --input-bg: #f9fafb;
+            --input-border: #d1d5db;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --nav-width: 260px;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
-            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
         }
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto;
+
+        /* === 布局 === */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
         }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        /* 左侧侧边栏 */
+        .sidebar {
+            width: var(--nav-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px 24px 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), #818cf8);
             color: white;
-            padding: 24px 32px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
         }
-        .header h1 { 
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
+
+        .brand-text h1 { margin: 0; font-size: 16px; font-weight: 700; }
+        .brand-text p { margin: 2px 0 0 0; font-size: 12px; color: var(--text-secondary); }
+
+        .nav-menu { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+
+        .nav-item {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item i { width: 20px; text-align: center; }
+
+        .nav-item:hover { background-color: #f3f4f6; color: var(--text-main); }
+
+        .nav-item.active {
+            background-color: #eef2ff;
+            color: var(--primary-color);
+        }
+
+        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); }
+
+        /* 右侧内容区 */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding: 40px;
+            position: relative;
+        }
+
+        .content-wrapper { max-width: 800px; margin: 0 auto; padding-bottom: 60px; }
+
+        .section-header {
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .header .subtitle {
-            margin-top: 8px;
-            font-size: 14px;
-            opacity: 0.9;
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
         }
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
+
+        .section-indicator {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+            background-color: var(--primary-color);
         }
-        .card { 
-            background: #fff; 
-            padding: 20px 24px; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.06);
+
+        /* 卡片组件 */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 32px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .card:hover {
-            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
-        .card-title { 
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #333; 
-            margin-bottom: 18px; 
-            padding-bottom: 12px; 
-            border-bottom: 2px solid #f0f0f0; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px;
+
+        .card-body { padding: 24px; }
+        .card-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #f3f4f6;
         }
-        .card-title .icon { 
-            font-size: 22px;
+        .card-row:first-child { padding-top: 0; }
+        .card-row:last-child { padding-bottom: 0; border-bottom: none; }
+        .card-row.full-width { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+        .label-group { flex: 1; padding-right: 20px; }
+        .label-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+        .label-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+
+        /* === 表单控件 === */
+
+        /* 输入框 */
+        .input-control {
+            padding: 8px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            font-size: 14px;
+            color: var(--text-main);
+            width: 240px;
+            transition: all 0.2s;
+        }
+        .input-control:focus {
+            border-color: var(--primary-color);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .input-control.full { width: 100%; }
+
+        /* 下拉框 */
+        select.input-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        /* 开关 Toggle Switch (核心创意点) */
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* 滑动条 Range */
+        .range-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+        input[type=range] {
+            flex: 1;
+            height: 6px;
+            border-radius: 5px;
+            background: #e5e7eb;
+            outline: none;
+            appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+        /* 颜色选择器 */
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
             width: 32px;
             height: 32px;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.25);
+            width: 100%;
+        }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover { background: #f9fafb; border-color: #d1d5db; }
+
+        /* === 新增：人性化颜色选择器样式 === */
+        .color-swatches {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid rgba(0,0,0,0.05);
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        /* 选中状态：外圈光环效果 */
+        .color-option.active {
+            box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--selected-color);
+            transform: scale(1.05);
+            border-color: transparent;
+        }
+
+        /* 自定义颜色按钮 */
+        .color-custom-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg, red, yellow, lime, aqua, blue, magenta, red);
+            cursor: pointer;
+            border: 2px solid rgba(0,0,0,0.1);
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 8px;
+        }
+        .color-custom-btn::after {
+            content: "+";
             color: white;
             font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
-        .form-row { 
-            display: flex; 
-            align-items: center; 
-            margin-bottom: 16px;
-            padding: 8px 0;
+
+        /* 隐藏原生的丑陋 input */
+        #cfg-highlightColor {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
         }
-        .form-row:last-child { 
-            margin-bottom: 0; 
-        }
-        .form-row label { 
-            flex: 1; 
-            color: #555; 
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.5;
-        }
-        .form-row .control { 
-            width: 240px; 
-            text-align: right;
-            flex-shrink: 0;
-        }
-        .form-row.full .control { 
-            width: 100%; 
-            text-align: left; 
-            margin-top: 8px; 
-        }
-        .form-row.full { 
-            flex-direction: column; 
-            align-items: flex-start; 
-        }
-        input[type="text"], input[type="password"], input[type="number"] { 
-            padding: 10px 14px; 
-            border: 1px solid #d9d9d9; 
-            border-radius: 6px; 
-            font-size: 14px; 
-            width: 100%;
-            transition: all 0.2s;
-        }
-        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus { 
-            border-color: #40a9ff; 
-            outline: none; 
-            box-shadow: 0 0 0 3px rgba(24,144,255,0.1);
-        }
-        input[type="color"] { 
-            width: 50px; 
-            height: 40px; 
-            padding: 2px; 
-            border: 2px solid #d9d9d9; 
-            border-radius: 6px; 
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        input[type="color"]:hover {
-            border-color: #40a9ff;
-            transform: scale(1.05);
-        }
-        input[type="checkbox"] { 
-            width: 20px; 
-            height: 20px; 
-            accent-color: #1890ff; 
-            cursor: pointer;
-        }
-        select { 
-            padding: 10px 14px; 
-            border: 1px solid #d9d9d9; 
-            border-radius: 6px; 
-            font-size: 14px; 
-            background: #fff; 
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        select:focus {
-            border-color: #40a9ff;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(24,144,255,0.1);
-        }
-        .help-text { 
-            font-size: 12px; 
-            color: #999; 
-            margin-top: 6px;
-            line-height: 1.5;
-            font-weight: normal;
-        }
-        .btn { 
-            padding: 12px 28px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 15px; 
-            font-weight: 600; 
-            transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .btn-primary { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-        }
-        .btn-primary:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        .btn-success { 
-            background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-            color: #fff;
-        }
-        .btn-success:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
-        }
-        .btn-block { 
-            width: 100%; 
-            padding: 14px;
-            font-size: 16px;
-        }
-        .status-msg { 
-            margin-top: 12px; 
-            text-align: center; 
-            min-height: 24px; 
-            font-weight: 500;
+
+        /* 状态消息 */
+        .status-msg {
+            font-size: 13px;
+            margin-top: 12px;
             padding: 8px;
             border-radius: 6px;
+            text-align: center;
+            display: none;
         }
-        .section-sub { 
-            margin-left: 24px; 
-            padding-left: 12px; 
-            border-left: 2px solid #f0f0f0; 
-        }
-        .divider { 
-            height: 1px; 
-            background: linear-gradient(90deg, transparent, #e8e8e8, transparent);
-            margin: 20px 0; 
-        }
-        .tag { 
-            display: inline-block; 
-            padding: 2px 8px; 
-            font-size: 12px; 
-            border-radius: 4px; 
-            margin-left: 8px; 
-        }
-        .tag-new { 
-            background: #e6f7ff; 
-            color: #1890ff; 
-        }
-        .tag-beta { 
-            background: #fff7e6; 
-            color: #fa8c16; 
-        }
-        .footer { 
-            text-align: center; 
-            margin-top: 32px; 
-            padding: 20px; 
-            color: #999; 
-            font-size: 13px;
-            background: rgba(255,255,255,0.6);
-            border-radius: 8px;
-        }
-        code {
-            background: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            color: #e83e8c;
-        }
-        @media (max-width: 1000px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-            .container {
-                max-width: 100%;
-            }
-        }
+        .status-msg.show { display: block; animation: fadeIn 0.3s; }
+        .status-msg.success { background: #ecfdf5; color: #047857; }
+        .status-msg.error { background: #fef2f2; color: #b91c1c; }
+
+        .divider { height: 1px; background: #f3f4f6; margin: 16px 0; width: 100%; }
+        .hidden { display: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>⚙️ MES 优化助手设置</h1>
-        <div class="subtitle">配置您的MES系统优化选项，所有设置保存在本地浏览器</div>
-    </div>
 
-    <div class="cards-grid">
-    <!-- 认证保活 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">🔐</span> 认证保活</div>
-        <div class="form-row">
-            <label>用户名</label>
-            <div class="control"><input type="text" id="cfg-username" placeholder="例如: EP0064"></div>
-        </div>
-        <div class="form-row">
-            <label>密码 <span style="color:#999;font-size:12px;">(仅保存在本地)</span></label>
-            <div class="control"><input type="password" id="cfg-password"></div>
-        </div>
-        <div class="form-row">
-            <label>启用自动保活 <span class="help-text">Session过期时自动重登并恢复数据</span></label>
-            <div class="control"><input type="checkbox" id="cfg-keepAliveEnabled"></div>
-        </div>
-        <div class="divider"></div>
-        <button id="btn-test-login" class="btn btn-primary">🔄 测试登录</button>
-        <div id="login-status" class="status-msg"></div>
-    </div>
-
-    <!-- 菜单高亮 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">🎨</span> 菜单高亮</div>
-        <div class="form-row">
-            <label>启用菜单高亮 <span class="help-text">点击左侧菜单时高亮显示并记忆</span></label>
-            <div class="control"><input type="checkbox" id="cfg-highlightEnabled"></div>
-        </div>
-        <div class="form-row">
-            <label>高亮颜色</label>
-            <div class="control"><input type="color" id="cfg-highlightColor"></div>
-        </div>
-    </div>
-
-    <!-- 表格增强 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">📊</span> 表格增强</div>
-        <div class="form-row">
-            <label>启用表格增强 <span class="help-text">总开关，关闭后下方所有表格功能失效</span></label>
-            <div class="control"><input type="checkbox" id="cfg-tbFixEnabled"></div>
-        </div>
-        <div class="form-row">
-            <label>表格区最小高度 (px)</label>
-            <div class="control"><input type="number" id="cfg-tbMinHeight" min="200" max="1200"></div>
-        </div>
-    </div>
-
-    <!-- 表格样式 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">🎯</span> 表格样式</div>
-        <div class="form-row full">
-            <label>表格字体</label>
-            <div class="control">
-                <select id="cfg-tableFontFamily">
-                    <option value='"JetBrains Mono", "Consolas", monospace'>JetBrains Mono (推荐)</option>
-                    <option value='"Consolas", "Monaco", monospace'>Consolas</option>
-                    <option value='"Microsoft YaHei", sans-serif'>微软雅黑</option>
-                    <option value='"Segoe UI", sans-serif'>Segoe UI</option>
-                    <option value='Arial, sans-serif'>Arial</option>
-                </select>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">M</div>
+            <div class="brand-text">
+                <h1>MES 助手</h1>
+                <p>配置中心 v1.0</p>
             </div>
         </div>
-        <div class="form-row">
-            <label>表格字号</label>
-            <div class="control">
-                <select id="cfg-tableFontSize">
-                    <option value="11px">11px (紧凑)</option>
-                    <option value="12px">12px (默认)</option>
-                    <option value="13px">13px</option>
-                    <option value="14px">14px (宽松)</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <label>单元格内边距</label>
-            <div class="control">
-                <select id="cfg-tablePadding">
-                    <option value="2px 4px">紧凑</option>
-                    <option value="3px 2px">默认</option>
-                    <option value="6px 8px">宽松</option>
-                    <option value="8px 12px">超宽松</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <label>加载 Google 字体 <span class="help-text">关闭后使用本地字体</span></label>
-            <div class="control"><input type="checkbox" id="cfg-useGoogleFonts"></div>
-        </div>
-    </div>
 
-    <!-- 固定表头 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">📌</span> 固定表头</div>
-        <div class="form-row">
-            <label>启用固定表头 <span class="help-text">滚动时表头固定在顶部</span></label>
-            <div class="control"><input type="checkbox" id="cfg-stickyHeaderEnabled"></div>
-        </div>
-    </div>
+        <nav class="nav-menu">
+            <a href="#section-auth" class="nav-item active" data-target="section-auth">
+                <i class="fa-solid fa-shield-halved"></i> 账号与安全
+            </a>
+            <a href="#section-visual" class="nav-item" data-target="section-visual">
+                <i class="fa-solid fa-palette"></i> 界面视觉
+            </a>
+            <a href="#section-table" class="nav-item" data-target="section-table">
+                <i class="fa-solid fa-table-cells"></i> 表格增强
+            </a>
+            <a href="#section-data" class="nav-item" data-target="section-data">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 数据处理
+            </a>
+        </nav>
 
-    <!-- 高级表格管理 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">🛠️</span> 高级表格管理</div>
-        <div class="form-row">
-            <label>启用表格管理 <span class="help-text">视图按钮、拖拽排序、隐藏列、筛选</span></label>
-            <div class="control"><input type="checkbox" id="cfg-tableManagerEnabled"></div>
+        <div class="sidebar-footer">
+            <button id="btn-save" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> 保存所有配置
+            </button>
         </div>
-        <div class="form-row">
-            <label>保存视图设置 <span class="help-text">刷新后保留列宽、顺序、隐藏状态</span></label>
-            <div class="control"><input type="checkbox" id="cfg-saveViewSettings"></div>
-        </div>
-    </div>
+    </aside>
 
-    <!-- 列宽控制 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">↔️</span> 列宽控制</div>
-        <div class="form-row">
-            <label>列宽最大值 (px)</label>
-            <div class="control"><input type="number" id="cfg-colMaxWidth" min="100" max="2000"></div>
-        </div>
-        <div class="form-row">
-            <label>列宽最小值 (px)</label>
-            <div class="control"><input type="number" id="cfg-colMinWidth" min="1" max="200"></div>
-        </div>
-        <div class="form-row">
-            <label>列宽采样行数 <span class="help-text">计算自动列宽时检查的数据行数</span></label>
-            <div class="control"><input type="number" id="cfg-colSampleRows" min="1" max="100"></div>
-        </div>
-    </div>
+    <main class="main-content">
+        <div class="content-wrapper">
 
-    <!-- 截断与Tooltip -->
-    <div class="card">
-        <div class="card-title"><span class="icon">✂️</span> 截断与 Tooltip</div>
-        <div class="form-row">
-            <label>截断阈值 (字符数) <span class="help-text">超过此长度显示省略号，悬停显示完整内容</span></label>
-            <div class="control"><input type="number" id="cfg-tbTruncateThreshold" min="10" max="500"></div>
-        </div>
-    </div>
-
-    <!-- 日期格式化 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">📅</span> 日期格式化</div>
-        <div class="form-row">
-            <label>启用日期格式化 <span class="help-text">自动格式化时间戳列</span></label>
-            <div class="control"><input type="checkbox" id="cfg-dateFormatEnabled"></div>
-        </div>
-        <div class="form-row full">
-            <label>日期格式 <span class="help-text">Y年 M月 D日 H时 m分 s秒，选择"自定义"可输入格式</span></label>
-            <div class="control">
-                <select id="cfg-dateFormatString">
-                    <option value="YYYY-MM-DD HH:mm:ss">2025-01-20 18:30:00 (标准格式)</option>
-                    <option value="YY-MM-DD HH:mm:ss">25-01-20 18:30:00 (短年份)</option>
-                    <option value="YYYY/MM/DD HH:mm:ss">2025/01/20 18:30:00 (斜杠分隔)</option>
-                    <option value="YYYY-MM-DD HH:mm">2025-01-20 18:30 (无秒)</option>
-                    <option value="YYYY/MM/DD HH:mm">2025/01/20 18:30 (斜杠无秒)</option>
-                    <option value="MM-DD HH:mm">01-20 18:30 (月日时分)</option>
-                    <option value="YYYY年MM月DD日 HH:mm:ss">2025年01月20日 18:30:00 (中文)</option>
-                    <option value="YYYY年MM月DD日">2025年01月20日 (仅日期)</option>
-                    <option value="MM月DD日 HH:mm">01月20日 18:30 (中文月日)</option>
-                    <option value="HH:mm:ss">18:30:00 (仅时间)</option>
-                    <option value="HH:mm">18:30 (时分)</option>
-                    <option value="YYYY.MM.DD HH:mm:ss">2025.01.20 18:30:00 (点分隔)</option>
-                    <option value="DD/MM/YYYY HH:mm:ss">20/01/2025 18:30:00 (欧洲格式)</option>
-                    <option value="MM/DD/YYYY HH:mm:ss">01/20/2025 18:30:00 (美式格式)</option>
-                    <option value="__CUSTOM__">自定义格式...</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row full" id="dateFormatCustomRow" style="display: none;">
-            <label>自定义格式 <span class="help-text">格式说明：YYYY=4位年，YY=2位年，MM=月，DD=日，HH=时，mm=分，ss=秒</span></label>
-            <div class="control">
-                <input type="text" id="cfg-dateFormatCustom" placeholder="例如: YYYY-MM-DD HH:mm:ss" style="font-family: monospace;">
-                <div class="help-text" style="margin-top: 4px;">
-                    示例：<code>YYYY-MM-DD HH:mm:ss</code> → 2025-01-20 18:30:00<br>
-                    示例：<code>YYYY年MM月DD日</code> → 2025年01月20日
+            <section id="section-auth">
+                <div class="section-header">
+                    <div class="section-indicator"></div>
+                    <h2>账号与安全</h2>
                 </div>
-            </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-row full-width">
+                            <div class="label-group">
+                                <div class="label-title">用户名</div>
+                            </div>
+                            <input type="text" id="cfg-username" class="input-control full" placeholder="例如: EP0064">
+                        </div>
+
+                        <div class="card-row full-width">
+                            <div class="label-group">
+                                <div class="label-title">密码 <span style="font-weight:400; font-size:12px; color:#9ca3af;">(仅本地保存)</span></div>
+                            </div>
+                            <input type="password" id="cfg-password" class="input-control full">
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="card-row">
+                            <div class="label-group">
+                                <div class="label-title">自动保活 (Keep Alive)</div>
+                                <div class="label-desc">Session 过期时自动重登并恢复现场</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-keepAliveEnabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="card-row" style="background: #fafafa; padding: 12px; border-radius: 8px; margin-top: 12px;">
+                            <button id="btn-test-login" class="btn btn-secondary" style="font-size: 12px;">
+                                <i class="fa-solid fa-rotate"></i> 测试登录
+                            </button>
+                            <span id="login-status" style="font-size: 13px; color: var(--text-secondary); margin-left: 10px;">等待测试...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-visual">
+                <div class="section-header">
+                    <div class="section-indicator" style="background-color: #8b5cf6;"></div>
+                    <h2>界面视觉</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+
+
+                        <div class="card-row full-width">
+                            <div class="label-group" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div>
+                                    <div class="label-title">菜单高亮主题</div>
+                                    <div class="label-desc">选择左侧菜单点击时的背景与文字颜色</div>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="cfg-highlightEnabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <input type="color" id="cfg-highlightColor">
+
+                            <div class="color-swatches" id="color-palette">
+                                <div class="color-option" style="background-color: #3b82f6; --selected-color: #3b82f6;" data-color="#3b82f6" title="经典蓝"></div>
+                                <div class="color-option" style="background-color: #8b5cf6; --selected-color: #8b5cf6;" data-color="#8b5cf6" title="科技紫"></div>
+                                <div class="color-option" style="background-color: #10b981; --selected-color: #10b981;" data-color="#10b981" title="清爽绿"></div>
+                                <div class="color-option" style="background-color: #f59e0b; --selected-color: #f59e0b;" data-color="#f59e0b" title="活力橙"></div>
+                                <div class="color-option" style="background-color: #ef4444; --selected-color: #ef4444;" data-color="#ef4444" title="玫瑰红"></div>
+                                <div class="color-option" style="background-color: #6b7280; --selected-color: #6b7280;" data-color="#6b7280" title="高级灰"></div>
+                                <div class="color-option" style="background-color: #1f2937; --selected-color: #1f2937;" data-color="#1f2937" title="暗夜黑"></div>
+
+                                <div class="color-custom-btn" id="btn-custom-color" title="自定义颜色"></div>
+                            </div>
+                        </div>
+
+                        <div class="card-row">
+                            <div class="label-group">
+                                <div class="label-title">固定表头</div>
+                                <div class="label-desc">页面滚动时将表格头部固定在顶部</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-stickyHeaderEnabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="card-row full-width">
+                            <div class="label-group">
+                                <div class="label-title">表格排版设置</div>
+                                <div class="label-desc">自定义数据表格的字体与间距</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; width: 100%;">
+                                <div>
+                                    <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">字体系列</label>
+                                    <select id="cfg-tableFontFamily" class="input-control full">
+                                        <option value='"JetBrains Mono", "Consolas", monospace'>JetBrains Mono</option>
+                                        <option value='"Consolas", monospace'>Consolas</option>
+                                        <option value='"Microsoft YaHei", sans-serif'>微软雅黑</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">字体大小</label>
+                                    <select id="cfg-tableFontSize" class="input-control full">
+                                        <option value="11px">11px (小)</option>
+                                        <option value="12px">12px (标准)</option>
+                                        <option value="13px">13px (大)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; color:#6b7280; display:block; margin-bottom:4px;">间距</label>
+                                    <select id="cfg-tablePadding" class="input-control full">
+                                        <option value="2px 4px">紧凑</option>
+                                        <option value="3px 2px">默认</option>
+                                        <option value="6px 8px">宽松</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-row">
+                            <div class="label-group">
+                                <div class="label-title">加载网络字体</div>
+                                <div class="label-desc">使用 Google Fonts (JetBrains Mono)</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-useGoogleFonts">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <section id="section-table">
+                <div class="section-header">
+                    <div class="section-indicator" style="background-color: #10b981;"></div>
+                    <h2>表格增强</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-row">
+                            <div class="label-group">
+                                <div class="label-title" style="color: #059669;">启用增强引擎</div>
+                                <div class="label-desc">控制所有高级表格功能的主开关</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-tbFixEnabled">
+                                <span class="slider" style="background-color: #d1fae5;"></span>
+                            </label>
+                        </div>
+
+                        <div class="card-row">
+                            <div class="label-group">
+                                <div class="label-title">高级视图管理</div>
+                                <div class="label-desc">支持拖拽排序、隐藏列、筛选数据</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-tableManagerEnabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="card-row" style="padding-left: 20px; border-left: 3px solid #f3f4f6;">
+                            <div class="label-group">
+                                <div class="label-title">保存视图偏好</div>
+                                <div class="label-desc">自动记忆您的列宽和顺序调整</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-saveViewSettings">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="card-row full-width">
+                            <div class="label-group">
+                                <div class="label-title">智能列宽控制</div>
+                                <div class="label-desc">限制自动列宽的计算范围 (像素)</div>
+                            </div>
+                            <div style="display: flex; gap: 12px; width: 100%; align-items: center;">
+                                <input type="number" id="cfg-colMinWidth" class="input-control" placeholder="Min" style="flex:1;">
+                                <span style="color:#9ca3af;">—</span>
+                                <input type="number" id="cfg-colMaxWidth" class="input-control" placeholder="Max" style="flex:1;">
+                                <span style="font-size:12px; color:#6b7280; padding:0 8px;">采样行数:</span>
+                                <input type="number" id="cfg-colSampleRows" class="input-control" style="width: 60px; text-align: center;">
+                            </div>
+                        </div>
+
+                        <div class="card-row">
+                            <div class="label-group">
+                                <div class="label-title">搜索工具栏</div>
+                                <div class="label-desc">在表格上方显示 Ctrl+F 增强搜索框</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="cfg-searchToolbarEnabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-data">
+                <div class="section-header">
+                    <div class="section-indicator" style="background-color: #f59e0b;"></div>
+                    <h2>数据处理</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-row full-width">
+                            <div class="label-group">
+                                <div class="label-title">内容截断阈值</div>
+                                <div class="label-desc">超过指定字符数显示省略号 (Tooltip 查看完整)</div>
+                            </div>
+                            <div class="range-wrapper">
+                                <input type="range" id="cfg-tbTruncateThreshold-range" min="10" max="500">
+                                <input type="number" id="cfg-tbTruncateThreshold" class="input-control" style="width: 70px; text-align: center;">
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="card-row full-width">
+                            <div class="label-group" style="display:flex; justify-content:space-between; width:100%; margin-bottom:8px;">
+                                <div>
+                                    <div class="label-title">日期时间格式化</div>
+                                    <div class="label-desc">转换时间戳为可读格式</div>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="cfg-dateFormatEnabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <select id="cfg-dateFormatString" class="input-control full" style="font-family: monospace;">
+                                <optgroup label="标准格式 (Standard)">
+                                    <option value="YYYY-MM-DD HH:mm:ss">2025-01-20 18:30:00 (标准)</option>
+                                    <option value="YYYY-MM-DD HH:mm">2025-01-20 18:30 (无秒)</option>
+                                    <option value="YYYY-MM-DD">2025-01-20 (仅日期)</option>
+                                </optgroup>
+
+                                <optgroup label="紧凑/短格式 (Compact)">
+                                    <option value="YY-MM-DD HH:mm:ss">25-01-20 18:30:00 (短年份)</option>
+                                    <option value="MM-DD HH:mm">01-20 18:30 (月日时分)</option>
+                                    <option value="HH:mm:ss">18:30:00 (仅时间)</option>
+                                </optgroup>
+
+                                <optgroup label="其他分隔符 (Separators)">
+                                    <option value="YYYY/MM/DD HH:mm:ss">2025/01/20 18:30:00 (斜杠)</option>
+                                    <option value="YYYY.MM.DD HH:mm:ss">2025.01.20 18:30:00 (点号)</option>
+                                    <option value="DD/MM/YYYY HH:mm:ss">20/01/2025 18:30:00 (欧式)</option>
+                                </optgroup>
+
+                                <optgroup label="本地化 (Localized)">
+                                    <option value="YYYY年MM月DD日 HH:mm:ss">2025年01月20日 18:30:00 (中文)</option>
+                                    <option value="YYYY-MM-DD hh:mm:ss A">2025-01-20 06:30:00 PM (12小时制)</option>
+                                </optgroup>
+
+                                <option value="__CUSTOM__">✨ 自定义格式 (Custom)...</option>
+                            </select>
+
+                            <div id="dateFormatCustomRow" class="hidden" style="width: 100%; margin-top: 8px;">
+                                <input type="text" id="cfg-dateFormatCustom" class="input-control full" placeholder="YYYY年MM月DD日" style="font-family: monospace; border-color: #f59e0b;">
+                                <div style="font-size: 12px; color: #f59e0b; margin-top: 4px;">支持: YYYY, MM, DD, HH, mm, ss</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-    </div>
-
-    <!-- 搜索工具栏 -->
-    <div class="card">
-        <div class="card-title"><span class="icon">🔍</span> 搜索工具栏</div>
-        <div class="form-row">
-            <label>启用搜索工具栏 <span class="help-text">Ctrl+F 打开自定义表格搜索</span></label>
-            <div class="control"><input type="checkbox" id="cfg-searchToolbarEnabled"></div>
-        </div>
-    </div>
-    </div>
-
-    <!-- 保存按钮 -->
-    <button id="btn-save" class="btn btn-success btn-block">💾 保存所有配置</button>
-
-    <div class="footer">MES 优化助手 v1.0 | 配置保存在本地浏览器</div>
+    </main>
 </div>
 
 <script src="options.js"></script>

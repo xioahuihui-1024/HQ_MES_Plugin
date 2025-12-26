@@ -509,72 +509,73 @@
                         font-family: "Segoe UI", sans-serif;
                     }
                     #mes-export-menu {
-                        min-width: 320px;
-                        max-width: 400px;
+                        min-width: 280px;
+                        max-width: 320px;
                     }
                     .mes-export-format-section {
-                        padding: 12px 16px;
+                        padding: 12px 14px;
                         border-bottom: 1px solid #f0f0f0;
                         background: #fff;
                     }
                     .mes-export-format-label {
                         font-size: 12px;
                         color: #666;
-                        margin-bottom: 8px;
+                        margin-bottom: 10px;
                         font-weight: 500;
                     }
                     .mes-export-format-options {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 8px;
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 6px;
                     }
                     .mes-format-option {
                         display: flex;
                         align-items: center;
+                        justify-content: center;
                         cursor: pointer;
-                        padding: 6px 10px;
+                        padding: 8px 6px;
                         border: 1px solid #d9d9d9;
-                        border-radius: 4px;
+                        border-radius: 6px;
                         background: #fff;
                         transition: all 0.2s;
                         font-size: 12px;
                         user-select: none;
                         position: relative;
-                        flex: 1;
-                        min-width: 0;
+                        box-sizing: border-box;
                     }
                     .mes-format-option:hover {
                         border-color: #40a9ff;
                         color: #40a9ff;
+                        background: #f5faff;
                     }
                     .mes-format-option input[type="radio"] {
-                        margin: 0;
-                        margin-right: 6px;
-                        cursor: pointer;
-                        accent-color: #1890ff;
+                        display: none;
                     }
-                    .mes-format-option input[type="radio"]:checked + span {
-                        font-weight: 600;
-                        color: #1890ff;
+                    .mes-format-option span:first-of-type {
+                        font-weight: 500;
                     }
                     .mes-format-option:has(input[type="radio"]:checked) {
                         border-color: #1890ff;
                         background: #e6f7ff;
+                        color: #1890ff;
+                        font-weight: 600;
+                        box-shadow: 0 0 0 1px #1890ff inset;
                     }
                     .mes-format-help {
-                        margin-left: 4px;
-                        color: #999;
+                        margin-left: 3px;
+                        color: #bbb;
                         cursor: help;
-                        font-size: 11px;
+                        font-size: 10px;
                         width: 14px;
                         height: 14px;
                         display: inline-flex;
                         align-items: center;
                         justify-content: center;
                         border-radius: 50%;
-                        border: 1px solid #d9d9d9;
+                        border: 1px solid #e0e0e0;
                         background: #fafafa;
                         transition: all 0.2s;
+                        flex-shrink: 0;
                     }
                     .mes-format-help:hover {
                         border-color: #1890ff;
@@ -583,42 +584,51 @@
                     }
                     .mes-format-tooltip {
                         position: absolute;
-                        bottom: 100%;
+                        bottom: calc(100% + 8px);
                         left: 50%;
                         transform: translateX(-50%);
-                        margin-bottom: 6px;
-                        padding: 6px 10px;
+                        padding: 8px 12px;
                         background: rgba(0, 0, 0, 0.85);
                         color: #fff;
                         font-size: 11px;
-                        border-radius: 4px;
-                        white-space: nowrap;
+                        font-weight: 400;
+                        border-radius: 6px;
                         opacity: 0;
                         pointer-events: none;
                         transition: opacity 0.2s;
                         z-index: 1000001;
-                        max-width: 250px;
+                        width: 180px;
                         white-space: normal;
-                        line-height: 1.4;
+                        line-height: 1.5;
+                        text-align: center;
+                    }
+                    .mes-format-tooltip::after {
+                        content: '';
+                        position: absolute;
+                        top: 100%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        border: 6px solid transparent;
+                        border-top-color: rgba(0, 0, 0, 0.85);
                     }
                     .mes-format-help:hover .mes-format-tooltip {
                         opacity: 1;
                     }
                     .mes-export-option {
-                        padding: 10px 16px;
+                        padding: 10px 14px;
                         border-bottom: 1px solid #f0f0f0;
                         background: #fafafa;
                         display: flex;
                         align-items: center;
                         gap: 8px;
                         font-size: 12px;
-                        color: #666;
+                        color: #555;
                         position: relative;
                     }
                     .mes-export-option input[type="checkbox"] {
                         cursor: pointer;
-                        width: 14px;
-                        height: 14px;
+                        width: 16px;
+                        height: 16px;
                         accent-color: #1890ff;
                         flex-shrink: 0;
                     }
@@ -629,18 +639,19 @@
                         display: flex;
                         align-items: center;
                         gap: 6px;
+                        line-height: 1.4;
                     }
                     .mes-export-option-help {
-                        color: #999;
+                        color: #bbb;
                         cursor: help;
-                        font-size: 11px;
+                        font-size: 10px;
                         width: 14px;
                         height: 14px;
                         display: inline-flex;
                         align-items: center;
                         justify-content: center;
                         border-radius: 50%;
-                        border: 1px solid #d9d9d9;
+                        border: 1px solid #e0e0e0;
                         background: #fff;
                         transition: all 0.2s;
                         flex-shrink: 0;
@@ -652,54 +663,63 @@
                     }
                     .mes-export-option-help-tooltip {
                         position: absolute;
-                        bottom: 100%;
-                        left: 16px;
-                        margin-bottom: 6px;
-                        padding: 6px 10px;
+                        bottom: calc(100% + 8px);
+                        left: 14px;
+                        padding: 8px 12px;
                         background: rgba(0, 0, 0, 0.85);
                         color: #fff;
                         font-size: 11px;
-                        border-radius: 4px;
+                        border-radius: 6px;
                         white-space: normal;
                         opacity: 0;
                         pointer-events: none;
                         transition: opacity 0.2s;
                         z-index: 1000001;
-                        max-width: 280px;
-                        line-height: 1.4;
+                        width: 220px;
+                        line-height: 1.5;
+                    }
+                    .mes-export-option-help-tooltip::after {
+                        content: '';
+                        position: absolute;
+                        top: 100%;
+                        left: 20px;
+                        border: 6px solid transparent;
+                        border-top-color: rgba(0, 0, 0, 0.85);
                     }
                     .mes-export-option-help:hover .mes-export-option-help-tooltip {
                         opacity: 1;
                     }
                     .mes-export-actions {
-                        padding: 10px 16px;
+                        padding: 12px 14px;
                         display: flex;
-                        gap: 8px;
-                        border-top: 1px solid #f0f0f0;
+                        gap: 10px;
+                        background: #fff;
                     }
                     .mes-export-action-btn {
                         flex: 1;
-                        padding: 6px 10px;
+                        padding: 10px 12px;
                         border: 1px solid #d9d9d9;
-                        border-radius: 4px;
+                        border-radius: 6px;
                         background: #fff;
                         color: #333;
-                        font-size: 12px;
+                        font-size: 13px;
+                        font-weight: 500;
                         cursor: pointer;
                         transition: all 0.2s;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        gap: 4px;
+                        gap: 6px;
                         white-space: nowrap;
                     }
                     .mes-export-action-btn:hover {
                         border-color: #40a9ff;
-                        color: #40a9ff;
+                        color: #1890ff;
                         background: #f0f8ff;
                     }
                     .mes-export-action-btn:active {
                         background: #e6f7ff;
+                        transform: scale(0.98);
                     }
                     .mes-menu-header { 
                         padding: 10px 16px; border-bottom: 1px solid #f0f0f0; background: #fff; 
@@ -1300,7 +1320,13 @@
                     e.stopPropagation();
                     const isVisible = menu.style.display === 'block';
                     if (!isVisible) {
-                        this.renderMenuContent(menu, pageKey, table);
+                        // [修复] 动态获取当前表格，而不是使用闭包中的旧引用
+                        const currentTable = document.querySelector('#tbDetail table');
+                        if (!currentTable) {
+                            alert('无法找到表格数据');
+                            return;
+                        }
+                        this.renderMenuContent(menu, pageKey, currentTable);
                         menu.style.display = 'block';
 
                         // [智能定位 v2.0]
@@ -1350,7 +1376,13 @@
                     e.stopPropagation();
                     const isVisible = exportMenu.style.display === 'block';
                     if (!isVisible) {
-                        this.renderExportMenu(exportMenu, table);
+                        // [修复] 动态获取当前表格，而不是使用闭包中的旧引用
+                        const currentTable = document.querySelector('#tbDetail table');
+                        if (!currentTable) {
+                            alert('无法找到表格数据');
+                            return;
+                        }
+                        this.renderExportMenu(exportMenu, currentTable);
                         exportMenu.style.display = 'block';
                         
                         // 智能定位（与视图菜单相同逻辑）
@@ -1887,12 +1919,22 @@
                 }
             },
 
+            // 检查是否是需要保护的长数字（防止Excel科学计数法）
+            isLongNumber: function(text) {
+                // 纯数字且长度超过11位（Excel对超过11位的数字会用科学计数法）
+                return /^\d{12,}$/.test(text);
+            },
+
             // 格式化为TSV
             formatAsTSV: function(rows) {
                 return rows.map(row => {
                     return row.map(cell => {
                         // 转义TSV特殊字符
-                        const text = String(cell || '').replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
+                        let text = String(cell || '').replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
+                        // [修复] 长数字加前缀防止Excel科学计数法
+                        if (this.isLongNumber(text)) {
+                            text = "'" + text; // 加单引号前缀，Excel会识别为文本
+                        }
                         return text;
                     }).join('\t');
                 }).join('\n');
@@ -1902,7 +1944,11 @@
             formatAsCSV: function(rows) {
                 return rows.map(row => {
                     return row.map(cell => {
-                        const text = String(cell || '');
+                        let text = String(cell || '');
+                        // [修复] 长数字用="xxx"格式，强制Excel识别为文本
+                        if (this.isLongNumber(text)) {
+                            return '="' + text + '"';
+                        }
                         // CSV转义：如果包含逗号、引号或换行，需要用引号包裹，并转义引号
                         if (text.includes(',') || text.includes('"') || text.includes('\n') || text.includes('\r')) {
                             return '"' + text.replace(/"/g, '""') + '"';

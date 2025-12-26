@@ -73,13 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 data: { username: cfg.username, password: cfg.password }
             }, (response) => {
                 loginBtn.disabled = false;
-                loginBtn.textContent = "🍪 刷新登录 Cookie";
+                loginBtn.textContent = "🍪 刷新 Cookie";
 
                 if (response && response.success) {
-                    msgBox.textContent = "✅ 刷新成功！";
+                    msgBox.textContent = "✅ 刷新成功，正在跳转...";
                     msgBox.style.color = "green";
-                    // 2秒后清除成功消息
-                    setTimeout(() => msgBox.textContent = "", 3000);
+                    // 直接打开主页
+                    chrome.tabs.create({ 
+                        url: "http://10.128.100.82/nsm_query/Index.aspx?isTest=N" 
+                    });
+                    window.close();
                 } else {
                     msgBox.textContent = "❌ " + (response ? response.msg : "请求超时");
                     msgBox.style.color = "red";
