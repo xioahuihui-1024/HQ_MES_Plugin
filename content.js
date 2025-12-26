@@ -511,11 +511,14 @@
                     #mes-export-menu {
                         min-width: 280px;
                         max-width: 320px;
+                        overflow: visible;
                     }
                     .mes-export-format-section {
                         padding: 12px 14px;
                         border-bottom: 1px solid #f0f0f0;
                         background: #fff;
+                        overflow: visible;
+                        position: relative;
                     }
                     .mes-export-format-label {
                         font-size: 12px;
@@ -583,33 +586,26 @@
                         background: #e6f7ff;
                     }
                     .mes-format-tooltip {
-                        position: absolute;
-                        bottom: calc(100% + 8px);
-                        left: 50%;
-                        transform: translateX(-50%);
+                        position: fixed;
                         padding: 8px 12px;
-                        background: rgba(0, 0, 0, 0.85);
+                        background: rgba(0, 0, 0, 0.9);
                         color: #fff;
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 400;
                         border-radius: 6px;
                         opacity: 0;
                         pointer-events: none;
                         transition: opacity 0.2s;
-                        z-index: 1000001;
-                        width: 180px;
+                        z-index: 10000000;
+                        width: 200px;
                         white-space: normal;
                         line-height: 1.5;
-                        text-align: center;
+                        text-align: left;
+                        transform: translateX(-50%);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                     }
                     .mes-format-tooltip::after {
-                        content: '';
-                        position: absolute;
-                        top: 100%;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        border: 6px solid transparent;
-                        border-top-color: rgba(0, 0, 0, 0.85);
+                        display: none;
                     }
                     .mes-format-help:hover .mes-format-tooltip {
                         opacity: 1;
@@ -624,6 +620,7 @@
                         font-size: 12px;
                         color: #555;
                         position: relative;
+                        overflow: visible;
                     }
                     .mes-export-option input[type="checkbox"] {
                         cursor: pointer;
@@ -662,29 +659,25 @@
                         background: #e6f7ff;
                     }
                     .mes-export-option-help-tooltip {
-                        position: absolute;
-                        bottom: calc(100% + 8px);
-                        left: 14px;
+                        position: fixed;
                         padding: 8px 12px;
-                        background: rgba(0, 0, 0, 0.85);
+                        background: rgba(0, 0, 0, 0.9);
                         color: #fff;
-                        font-size: 11px;
+                        font-size: 12px;
                         border-radius: 6px;
                         white-space: normal;
                         opacity: 0;
                         pointer-events: none;
                         transition: opacity 0.2s;
-                        z-index: 1000001;
+                        z-index: 10000000;
                         width: 220px;
                         line-height: 1.5;
+                        text-align: left;
+                        transform: translateX(-50%);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                     }
                     .mes-export-option-help-tooltip::after {
-                        content: '';
-                        position: absolute;
-                        top: 100%;
-                        left: 20px;
-                        border: 6px solid transparent;
-                        border-top-color: rgba(0, 0, 0, 0.85);
+                        display: none;
                     }
                     .mes-export-option-help:hover .mes-export-option-help-tooltip {
                         opacity: 1;
@@ -810,8 +803,8 @@
             parentUI: null,
             dragSrcEl: null,
             // 运行时状态 (不持久化)
-            sortState: { colIndex: -1, direction: 'none' }, // none, asc, desc
-            filterState: {}, // { colIndex: 'text' }
+            sortState: { colName: '', direction: 'none' }, // none, asc, desc - 改用列名
+            filterState: {}, // { colName: 'text' } - 改用列名作为 key
 
             init: function(parent) {
                 this.parentUI = parent;
@@ -857,7 +850,7 @@
                 // 原网页每次查询都会替换 innerHTML，这里利用这个特性
                 if (table.dataset.mesEnhanced !== 'true') {
                     // 重置排序和筛选状态，因为数据变了，之前的排序已经失效
-                    this.sortState = { colIndex: -1, direction: 'none' };
+                    this.sortState = { colName: '', direction: 'none' };
                     this.filterState = {};
 
                     // 给所有行添加原始索引，方便取消排序时恢复
@@ -893,40 +886,40 @@
             },
 
             calculateAutoWidths: function(table, pageKey) {
-                table.style.tableLayout = 'auto';
-                const headers = Array.from(table.rows[0].cells);
-                const widths = {};
+                // [性能优化] 使用 requestAnimationFrame 避免阻塞渲染
+                const self = this;
                 const MAX_WIDTH = this.parentUI.config.colMaxWidth || 850;
                 const MIN_WIDTH = this.parentUI.config.colMinWidth || 6;
+                const sampleRows = this.parentUI.config.colSampleRows || 12;
+                
+                // 临时切换为 auto 布局计算宽度
+                const originalLayout = table.style.tableLayout;
+                table.style.tableLayout = 'auto';
+                
+                const headers = table.rows[0].cells;
+                const widths = {};
+                const rowCount = Math.min(table.rows.length, sampleRows + 1);
 
-                // [修复] 遍历所有行，找出每列的最大内容宽度
-                headers.forEach((th, colIdx) => {
+                for (let colIdx = 0; colIdx < headers.length; colIdx++) {
+                    const th = headers[colIdx];
                     let maxWidth = th.offsetWidth;
 
-                    // 遍历数据行，找最大宽度
-                    const sampleRows = this.parentUI.config.colSampleRows || 12;
-                    for (let i = 1; i < Math.min(table.rows.length, sampleRows + 1); i++) {
-                        const cell = table.rows[i].cells[colIdx];
+                    // 遍历采样行
+                    for (let i = 1; i < rowCount; i++) {
+                        const cell = table.rows[i]?.cells[colIdx];
                         if (cell) {
-                            // 临时移除截断样式以获取真实宽度
-                            const originalStyle = cell.style.cssText;
-                            cell.style.whiteSpace = 'nowrap';
-                            cell.style.overflow = 'visible';
                             const cellWidth = cell.scrollWidth;
-                            cell.style.cssText = originalStyle;
-
                             if (cellWidth > maxWidth) {
                                 maxWidth = cellWidth;
                             }
                         }
                     }
 
-                    // 加一点余量（padding + border）
-                    let w = maxWidth + 10;
-                    if (w > MAX_WIDTH) w = MAX_WIDTH;
-                    if (w < MIN_WIDTH) w = MIN_WIDTH;
+                    // 加余量并限制范围
+                    let w = Math.min(Math.max(maxWidth + 10, MIN_WIDTH), MAX_WIDTH);
                     widths[th.innerText.trim()] = w;
-                });
+                }
+                
                 this.getOrCreateConfig(pageKey).widths = widths;
                 this.persist();
                 table.style.tableLayout = 'fixed';
@@ -936,105 +929,162 @@
                 const config = this.settings[pageKey];
                 if (!config) return;
 
-                const rows = Array.from(table.rows);
+                const rows = table.rows;
                 const headerRow = rows[0];
-                const headerMap = {};
-                Array.from(headerRow.cells).forEach((cell, idx) => {
-                    headerMap[cell.innerText.trim()] = idx;
-                });
+                const headerCells = headerRow.cells;
+                
+                // [性能优化] 使用 Map 替代对象，提高查找效率
+                const headerMap = new Map();
+                for (let i = 0; i < headerCells.length; i++) {
+                    headerMap.set(headerCells[i].innerText.trim(), i);
+                }
 
                 const savedOrder = config.order || [];
-                const currentHeaders = Object.keys(headerMap);
+                const currentHeaders = Array.from(headerMap.keys());
                 const finalOrder = [...new Set([...savedOrder, ...currentHeaders])];
+                
+                // [性能优化] 预先创建隐藏列 Set
+                const hiddenSet = new Set(config.hidden || []);
+                const widths = config.widths || {};
 
-                rows.forEach(row => {
+                // [性能优化] 批量处理行
+                for (let r = 0; r < rows.length; r++) {
+                    const row = rows[r];
                     const cells = Array.from(row.cells);
                     const fragment = document.createDocumentFragment();
-                    finalOrder.forEach(colName => {
-                        const idx = headerMap[colName];
+                    
+                    for (let i = 0; i < finalOrder.length; i++) {
+                        const colName = finalOrder[i];
+                        const idx = headerMap.get(colName);
                         if (idx !== undefined && cells[idx]) {
                             const cell = cells[idx];
-                            if (config.hidden && config.hidden.includes(colName)) cell.classList.add('mes-col-hidden');
-                            else cell.classList.remove('mes-col-hidden');
+                            
+                            // 处理隐藏
+                            if (hiddenSet.has(colName)) {
+                                cell.classList.add('mes-col-hidden');
+                            } else {
+                                cell.classList.remove('mes-col-hidden');
+                            }
 
-                            if (row === headerRow && config.widths && config.widths[colName]) {
-                                cell.style.width = config.widths[colName] + 'px';
+                            // 只对表头设置宽度
+                            if (r === 0 && widths[colName]) {
+                                cell.style.width = widths[colName] + 'px';
                             }
                             fragment.appendChild(cell);
                         }
-                    });
-                    row.innerHTML = '';
+                    }
+                    row.textContent = '';
                     row.appendChild(fragment);
-                });
+                }
             },
 
             applyCellInteractions: function(table) {
                 const config = this.parentUI.config;
                 const truncateLen = config.tbTruncateThreshold || 30;
-                let dateCols = [];
+                const dateFormatEnabled = config.dateFormatEnabled;
+                const dateFormatString = config.dateFormatString;
+                
+                // [性能优化] 预先计算日期列索引
+                const dateCols = new Set();
                 const headerRow = table.rows[0];
-                Array.from(headerRow.cells).forEach((th, idx) => {
-                    const txt = th.innerText.toLowerCase();
-                    if (txt.includes('time') || txt.includes('date')) dateCols.push(idx);
-                });
+                const headerCells = headerRow.cells;
+                for (let i = 0; i < headerCells.length; i++) {
+                    const txt = headerCells[i].innerText.toLowerCase();
+                    if (txt.includes('time') || txt.includes('date')) {
+                        dateCols.add(i);
+                    }
+                }
 
-                Array.from(table.rows).forEach((row, rIdx) => {
-                    if (rIdx === 0) return;
-                    Array.from(row.cells).forEach((cell, cIdx) => {
+                // [性能优化] 使用 DocumentFragment 批量处理
+                const rows = table.rows;
+                const rowCount = rows.length;
+                
+                for (let rIdx = 1; rIdx < rowCount; rIdx++) {
+                    const row = rows[rIdx];
+                    const cells = row.cells;
+                    const cellCount = cells.length;
+                    
+                    for (let cIdx = 0; cIdx < cellCount; cIdx++) {
+                        const cell = cells[cIdx];
+                        // [性能优化] 跳过已处理的单元格
+                        if (cell.dataset.mesProcessed) continue;
+                        cell.dataset.mesProcessed = '1';
+                        
                         let text = cell.innerText.trim();
-                        // [优化1] 保留原始 HTML 内容（如链接、图片标签），而不是纯文本
                         const originalHtml = cell.innerHTML.trim();
-                        // 检查是否包含 HTML 标签（如 <a>, <img>）
                         const hasHtmlTags = /<[^>]+>/.test(originalHtml);
-
-                        // [修复] 计算实际内容长度：对于有 HTML 标签的，用 HTML 长度判断；纯文本用 text 长度
                         const contentLength = hasHtmlTags ? originalHtml.length : text.length;
 
+                        // 创建包装 div
+                        const div = document.createElement('div');
+                        div.className = 'mes-table-cell-fix';
+                        
                         if (hasHtmlTags) {
-                            // 保留原始 HTML，只包裹一层 div
-                            cell.innerHTML = `<div class="mes-table-cell-fix">${originalHtml}</div>`;
+                            div.innerHTML = originalHtml;
                         } else {
-                            // 纯文本则转义
-                            cell.innerHTML = `<div class="mes-table-cell-fix">${Utils.escapeHtml(text)}</div>`;
-                        }
-                        const div = cell.firstChild;
-
-                        if (config.dateFormatEnabled && !hasHtmlTags) {
-                            const isTime = /^20\d{12}$/.test(text);
-                            if (isTime || (dateCols.includes(cIdx) && isTime)) {
-                                text = Utils.formatTimestamp(text, config.dateFormatString);
-                                div.innerText = text;
-                                div.classList.add('mes-date-cell');
-                            }
+                            div.textContent = text; // [性能优化] 使用 textContent 替代 innerHTML
                         }
 
-                        // [修复] 使用 contentLength 判断是否需要截断
+                        // 日期格式化
+                        if (dateFormatEnabled && !hasHtmlTags && /^20\d{12}$/.test(text)) {
+                            text = Utils.formatTimestamp(text, dateFormatString);
+                            div.textContent = text;
+                            div.classList.add('mes-date-cell');
+                        }
+
+                        // 清空并添加新内容
+                        cell.textContent = '';
+                        cell.appendChild(div);
+
+                        // 截断处理
                         if (contentLength > truncateLen) {
                             div.classList.add('mes-truncated-cell');
-                            // 存储原始内容用于搜索和显示
                             div.dataset.fullText = text;
                             div.dataset.fullHtml = originalHtml;
                             div.dataset.hasHtml = hasHtmlTags ? '1' : '0';
 
-                            cell.addEventListener('mouseenter', (e) => {
-                                // 如果已展开，不显示 tooltip
-                                if (div.classList.contains('mes-search-expanded')) return;
-                                this.parentUI.SmartTooltip.show(e.target, text || originalHtml.replace(/<[^>]+>/g, ''));
-                            });
-                            cell.addEventListener('mouseleave', () => this.parentUI.SmartTooltip.hide());
-                            cell.addEventListener('click', (e) => {
-                                // 如果点击的是链接，不要阻止默认行为
-                                if (e.target.tagName === 'A' || e.target.tagName === 'IMG') return;
-                                e.stopPropagation();
-                                this.parentUI.SmartTooltip.hide();
-                                // 显示模态框时，如果有 HTML 标签，显示原始 HTML 内容
-                                this.parentUI.showDetailModal(hasHtmlTags ? originalHtml : text, hasHtmlTags);
-                            });
+                            // [性能优化] 使用事件委托替代每个单元格绑定事件
+                            cell.dataset.mesTruncated = '1';
                         }
-                    });
-                });
+                    }
+                }
 
-                // [优化2] 注入自定义搜索工具栏
+                // [性能优化] 使用事件委托处理截断单元格的交互
+                if (!table.dataset.mesEventBound) {
+                    table.dataset.mesEventBound = '1';
+                    const self = this;
+                    
+                    table.addEventListener('mouseenter', (e) => {
+                        const cell = e.target.closest('td[data-mes-truncated="1"]');
+                        if (!cell) return;
+                        const div = cell.querySelector('.mes-truncated-cell');
+                        if (!div || div.classList.contains('mes-search-expanded')) return;
+                        const text = div.dataset.fullText || div.innerText;
+                        self.parentUI.SmartTooltip.show(cell, text);
+                    }, true);
+                    
+                    table.addEventListener('mouseleave', (e) => {
+                        const cell = e.target.closest('td[data-mes-truncated="1"]');
+                        if (cell) {
+                            self.parentUI.SmartTooltip.hide();
+                        }
+                    }, true);
+                    
+                    table.addEventListener('click', (e) => {
+                        if (e.target.tagName === 'A' || e.target.tagName === 'IMG') return;
+                        const cell = e.target.closest('td[data-mes-truncated="1"]');
+                        if (!cell) return;
+                        const div = cell.querySelector('.mes-truncated-cell');
+                        if (!div) return;
+                        e.stopPropagation();
+                        self.parentUI.SmartTooltip.hide();
+                        const hasHtml = div.dataset.hasHtml === '1';
+                        const content = hasHtml ? div.dataset.fullHtml : div.dataset.fullText;
+                        self.parentUI.showDetailModal(content, hasHtml);
+                    });
+                }
+
+                // 注入自定义搜索工具栏
                 if (config.searchToolbarEnabled) {
                     this.injectSearchToolbar(table);
                 }
@@ -1470,10 +1520,10 @@
                     const isHidden = cell ? cell.classList.contains('mes-col-hidden') : false;
                     const chkId = 'chk-' + Math.random().toString(36).substr(2, 9);
 
-                    // 状态判断
-                    const isSortedAsc = this.sortState.colIndex === idx && this.sortState.direction === 'asc';
-                    const isSortedDesc = this.sortState.colIndex === idx && this.sortState.direction === 'desc';
-                    const hasFilter = this.filterState[idx] && this.filterState[idx].length > 0;
+                    // 状态判断 - 使用列名而非索引
+                    const isSortedAsc = this.sortState.colName === colName && this.sortState.direction === 'asc';
+                    const isSortedDesc = this.sortState.colName === colName && this.sortState.direction === 'desc';
+                    const hasFilter = this.filterState[colName] && this.filterState[colName].length > 0;
 
                     item.innerHTML = `
                         <span class="mes-col-drag-handle" title="拖拽排序">⋮⋮</span>
@@ -1482,25 +1532,25 @@
                         <div class="mes-col-actions">
                             <span class="mes-action-btn sort-asc ${isSortedAsc ? 'active' : ''}" title="升序">⬆️</span>
                             <span class="mes-action-btn sort-desc ${isSortedDesc ? 'active' : ''}" title="降序">⬇️</span>
-                            <input type="text" class="mes-filter-input ${hasFilter ? 'active' : ''}" placeholder="筛选" value="${this.filterState[idx] || ''}">
+                            <input type="text" class="mes-filter-input ${hasFilter ? 'active' : ''}" placeholder="筛选" value="${this.filterState[colName] || ''}">
                         </div>
                     `;
 
                     // 绑定事件
-                    item.querySelector('input').addEventListener('change', (e) => {
+                    item.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
                         this.toggleColumnVisibility(table, colName, !e.target.checked, pageKey);
                         this.updateBtnState(pageKey);
                     });
 
-                    // [修改] 排序事件：三态切换 (点击高亮的会取消)
-                    item.querySelector('.sort-asc').onclick = () => this.handleSortClick(table, idx, 'asc', pageKey, menu);
-                    item.querySelector('.sort-desc').onclick = () => this.handleSortClick(table, idx, 'desc', pageKey, menu);
+                    // 排序事件：使用列名
+                    item.querySelector('.sort-asc').onclick = () => this.handleSortClick(table, colName, 'asc', pageKey, menu);
+                    item.querySelector('.sort-desc').onclick = () => this.handleSortClick(table, colName, 'desc', pageKey, menu);
 
-                    // 筛选
+                    // 筛选：使用列名
                     const filterInput = item.querySelector('.mes-filter-input');
                     filterInput.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); });
                     filterInput.addEventListener('input', (e) => {
-                        this.filterTableData(table, idx, e.target.value);
+                        this.filterTableData(table, colName, e.target.value);
                         this.updateBtnState(pageKey);
                     });
 
@@ -1516,7 +1566,7 @@
                         this.persist();
                         
                         // 清除运行时状态
-                        this.sortState = { colIndex: -1, direction: 'none' };
+                        this.sortState = { colName: '', direction: 'none' };
                         this.filterState = {};
                         
                         // 清除DOM标记，让表格重新处理
@@ -1550,20 +1600,35 @@
             },
 
             // [新增] 处理排序点击 (三态逻辑)
-            handleSortClick: function(table, colIdx, direction, pageKey, menu) {
+            handleSortClick: function(table, colName, direction, pageKey, menu) {
                 // 如果点击的是当前已经激活的方向，则取消排序
-                if (this.sortState.colIndex === colIdx && this.sortState.direction === direction) {
-                    this.sortColumn(table, colIdx, 'none'); // 恢复默认
+                if (this.sortState.colName === colName && this.sortState.direction === direction) {
+                    this.sortColumn(table, colName, 'none'); // 恢复默认
                 } else {
-                    this.sortColumn(table, colIdx, direction);
+                    this.sortColumn(table, colName, direction);
                 }
                 // 重新渲染菜单以更新高亮状态
                 this.renderMenuContent(menu, pageKey, table);
                 this.updateBtnState(pageKey);
             },
 
-            sortColumn: function(table, colIdx, direction) {
-                this.sortState = { colIndex: colIdx, direction: direction };
+            // 根据列名获取当前列索引
+            getColIndexByName: function(table, colName) {
+                const headerCells = table.rows[0].cells;
+                for (let i = 0; i < headerCells.length; i++) {
+                    if (headerCells[i].innerText.trim() === colName) {
+                        return i;
+                    }
+                }
+                return -1;
+            },
+
+            sortColumn: function(table, colName, direction) {
+                this.sortState = { colName: colName, direction: direction };
+                
+                // 动态获取当前列索引
+                const colIdx = this.getColIndexByName(table, colName);
+                if (colIdx === -1) return;
 
                 const tbody = table.tBodies[0] || table;
                 const rows = Array.from(tbody.querySelectorAll('tr:not(#trfirst)'));
@@ -1592,19 +1657,25 @@
                 rows.forEach(row => tbody.appendChild(row));
             },
 
-            filterTableData: function(table, colIdx, text) {
-                this.filterState[colIdx] = text; // 保存状态
+            filterTableData: function(table, colName, text) {
+                this.filterState[colName] = text; // 使用列名保存状态
+                
+                // 构建列名到索引的映射
+                const colNameToIdx = new Map();
+                const headerCells = table.rows[0].cells;
+                for (let i = 0; i < headerCells.length; i++) {
+                    colNameToIdx.set(headerCells[i].innerText.trim(), i);
+                }
+                
                 const rows = Array.from(table.querySelectorAll('tr:not(#trfirst)'));
-                const lowerText = text.toLowerCase();
 
                 rows.forEach(row => {
-                    const cell = row.cells[colIdx];
-                    if (!cell) return;
-
                     // 需要同时满足所有列的筛选条件 (AND 逻辑)
                     let visible = true;
-                    for (const [fIdx, fText] of Object.entries(this.filterState)) {
+                    for (const [fColName, fText] of Object.entries(this.filterState)) {
                         if (!fText) continue;
+                        const fIdx = colNameToIdx.get(fColName);
+                        if (fIdx === undefined) continue;
                         const fCell = row.cells[fIdx];
                         if (!fCell || !fCell.innerText.toLowerCase().includes(fText.toLowerCase())) {
                             visible = false;
@@ -1769,6 +1840,31 @@
                         <button type="button" class="mes-export-action-btn" data-action="download">💾 下载</button>
                     </div>
                 `;
+
+                // [修复] 为 tooltip 添加动态定位（使用 fixed 定位避免被裁剪）
+                menu.querySelectorAll('.mes-format-help, .mes-export-option-help').forEach(helpBtn => {
+                    const tooltip = helpBtn.querySelector('.mes-format-tooltip, .mes-export-option-help-tooltip');
+                    if (!tooltip) return;
+                    
+                    helpBtn.addEventListener('mouseenter', () => {
+                        const rect = helpBtn.getBoundingClientRect();
+                        const tooltipWidth = 200; // tooltip 大约宽度
+                        let leftPos = rect.left + rect.width / 2;
+                        
+                        // 防止超出左边界
+                        if (leftPos - tooltipWidth / 2 < 10) {
+                            leftPos = tooltipWidth / 2 + 10;
+                            tooltip.style.transform = 'translateX(-50%)';
+                        }
+                        // 防止超出右边界
+                        if (leftPos + tooltipWidth / 2 > window.innerWidth - 10) {
+                            leftPos = window.innerWidth - tooltipWidth / 2 - 10;
+                        }
+                        
+                        tooltip.style.left = leftPos + 'px';
+                        tooltip.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                    });
+                });
 
                 const self = this;
                 menu.querySelectorAll('.mes-export-action-btn').forEach(btn => {
@@ -2249,12 +2345,75 @@
         }
 
         if (isMenu) {
-            setInterval(() => UIModule.bindMenu(), 1000); // 菜单可能是动态的
+            // [性能优化] 使用 MutationObserver 替代 setInterval 监听菜单变化
+            UIModule.bindMenu();
             setTimeout(() => UIModule.restoreMenu(), 500);
+            
+            const menuContainer = document.querySelector('#treeFunc');
+            if (menuContainer) {
+                const menuObserver = new MutationObserver(() => {
+                    UIModule.bindMenu();
+                });
+                menuObserver.observe(menuContainer, { childList: true, subtree: true });
+            }
         }
 
         if (isMain) {
-            setInterval(() => UIModule.fixTable(), 1000); // 表格内容会变
+            // [性能优化] 使用 MutationObserver 替代 setInterval 监听表格变化
+            UIModule.fixTable(); // 首次执行
+            
+            const tbDetail = document.getElementById('tbDetail');
+            if (tbDetail) {
+                const tableObserver = new MutationObserver((mutations) => {
+                    // 只在有实际内容变化时处理
+                    const hasTableChange = mutations.some(m => 
+                        m.type === 'childList' && 
+                        (m.addedNodes.length > 0 || m.removedNodes.length > 0)
+                    );
+                    if (hasTableChange) {
+                        UIModule.fixTable();
+                    }
+                });
+                tableObserver.observe(tbDetail, { childList: true, subtree: true });
+            } else if (document.body) {
+                // 如果 tbDetail 还不存在，等待它出现
+                const bodyObserver = new MutationObserver((mutations, obs) => {
+                    const tb = document.getElementById('tbDetail');
+                    if (tb) {
+                        obs.disconnect();
+                        UIModule.fixTable();
+                        const tableObserver = new MutationObserver((muts) => {
+                            const hasTableChange = muts.some(m => 
+                                m.type === 'childList' && 
+                                (m.addedNodes.length > 0 || m.removedNodes.length > 0)
+                            );
+                            if (hasTableChange) {
+                                UIModule.fixTable();
+                            }
+                        });
+                        tableObserver.observe(tb, { childList: true, subtree: true });
+                    }
+                });
+                bodyObserver.observe(document.body, { childList: true, subtree: true });
+            } else {
+                // 兜底：如果 body 也不存在，使用 DOMContentLoaded 后再设置
+                document.addEventListener('DOMContentLoaded', () => {
+                    const tb = document.getElementById('tbDetail');
+                    if (tb) {
+                        UIModule.fixTable();
+                        const tableObserver = new MutationObserver((muts) => {
+                            const hasTableChange = muts.some(m => 
+                                m.type === 'childList' && 
+                                (m.addedNodes.length > 0 || m.removedNodes.length > 0)
+                            );
+                            if (hasTableChange) {
+                                UIModule.fixTable();
+                            }
+                        });
+                        tableObserver.observe(tb, { childList: true, subtree: true });
+                    }
+                });
+            }
         }
     }
 
