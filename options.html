@@ -5,47 +5,263 @@
     <title>MES 优化助手 - 设置</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #f4f7f9; padding: 20px; color: #333; margin: 0; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { color: #0078d7; margin-bottom: 20px; font-size: 24px; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
-        .card-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
-        .card-title .icon { font-size: 20px; }
-        .form-row { display: flex; align-items: center; margin-bottom: 12px; }
-        .form-row:last-child { margin-bottom: 0; }
-        .form-row label { flex: 1; color: #555; font-size: 14px; }
-        .form-row .control { width: 200px; text-align: right; }
-        .form-row.full .control { width: 100%; text-align: left; margin-top: 8px; }
-        .form-row.full { flex-direction: column; align-items: flex-start; }
+        body { 
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 24px; 
+            color: #333; 
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+        .header h1 { 
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header .subtitle {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .card { 
+            background: #fff; 
+            padding: 20px 24px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .card-title { 
+            font-size: 16px; 
+            font-weight: 600; 
+            color: #333; 
+            margin-bottom: 18px; 
+            padding-bottom: 12px; 
+            border-bottom: 2px solid #f0f0f0; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+        }
+        .card-title .icon { 
+            font-size: 22px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+        }
+        .form-row { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 16px;
+            padding: 8px 0;
+        }
+        .form-row:last-child { 
+            margin-bottom: 0; 
+        }
+        .form-row label { 
+            flex: 1; 
+            color: #555; 
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .form-row .control { 
+            width: 240px; 
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .form-row.full .control { 
+            width: 100%; 
+            text-align: left; 
+            margin-top: 8px; 
+        }
+        .form-row.full { 
+            flex-direction: column; 
+            align-items: flex-start; 
+        }
         input[type="text"], input[type="password"], input[type="number"] { 
-            padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; width: 100%; 
+            padding: 10px 14px; 
+            border: 1px solid #d9d9d9; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            width: 100%;
+            transition: all 0.2s;
         }
         input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus { 
-            border-color: #40a9ff; outline: none; box-shadow: 0 0 0 2px rgba(24,144,255,0.2); 
+            border-color: #40a9ff; 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(24,144,255,0.1);
         }
-        input[type="color"] { width: 60px; height: 32px; padding: 2px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; }
-        input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1890ff; cursor: pointer; }
-        select { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; background: #fff; cursor: pointer; }
-        .help-text { font-size: 12px; color: #999; margin-top: 4px; }
-        .btn { padding: 10px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
-        .btn-primary { background: #1890ff; color: #fff; }
-        .btn-primary:hover { background: #40a9ff; }
-        .btn-success { background: #52c41a; color: #fff; }
-        .btn-success:hover { background: #73d13d; }
-        .btn-block { width: 100%; }
-        .status-msg { margin-top: 10px; text-align: center; min-height: 20px; font-weight: 500; }
-        .section-sub { margin-left: 24px; padding-left: 12px; border-left: 2px solid #f0f0f0; }
-        .divider { height: 1px; background: #f0f0f0; margin: 16px 0; }
-        .tag { display: inline-block; padding: 2px 8px; font-size: 12px; border-radius: 4px; margin-left: 8px; }
-        .tag-new { background: #e6f7ff; color: #1890ff; }
-        .tag-beta { background: #fff7e6; color: #fa8c16; }
-        .footer { text-align: center; margin-top: 20px; padding: 16px; color: #999; font-size: 12px; }
+        input[type="color"] { 
+            width: 50px; 
+            height: 40px; 
+            padding: 2px; 
+            border: 2px solid #d9d9d9; 
+            border-radius: 6px; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        input[type="color"]:hover {
+            border-color: #40a9ff;
+            transform: scale(1.05);
+        }
+        input[type="checkbox"] { 
+            width: 20px; 
+            height: 20px; 
+            accent-color: #1890ff; 
+            cursor: pointer;
+        }
+        select { 
+            padding: 10px 14px; 
+            border: 1px solid #d9d9d9; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            background: #fff; 
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        select:focus {
+            border-color: #40a9ff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(24,144,255,0.1);
+        }
+        .help-text { 
+            font-size: 12px; 
+            color: #999; 
+            margin-top: 6px;
+            line-height: 1.5;
+            font-weight: normal;
+        }
+        .btn { 
+            padding: 12px 28px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: 600; 
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+            color: #fff;
+        }
+        .btn-success:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+        }
+        .btn-block { 
+            width: 100%; 
+            padding: 14px;
+            font-size: 16px;
+        }
+        .status-msg { 
+            margin-top: 12px; 
+            text-align: center; 
+            min-height: 24px; 
+            font-weight: 500;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .section-sub { 
+            margin-left: 24px; 
+            padding-left: 12px; 
+            border-left: 2px solid #f0f0f0; 
+        }
+        .divider { 
+            height: 1px; 
+            background: linear-gradient(90deg, transparent, #e8e8e8, transparent);
+            margin: 20px 0; 
+        }
+        .tag { 
+            display: inline-block; 
+            padding: 2px 8px; 
+            font-size: 12px; 
+            border-radius: 4px; 
+            margin-left: 8px; 
+        }
+        .tag-new { 
+            background: #e6f7ff; 
+            color: #1890ff; 
+        }
+        .tag-beta { 
+            background: #fff7e6; 
+            color: #fa8c16; 
+        }
+        .footer { 
+            text-align: center; 
+            margin-top: 32px; 
+            padding: 20px; 
+            color: #999; 
+            font-size: 13px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #e83e8c;
+        }
+        @media (max-width: 1000px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>⚙️ MES 优化助手设置</h1>
+    <div class="header">
+        <h1>⚙️ MES 优化助手设置</h1>
+        <div class="subtitle">配置您的MES系统优化选项，所有设置保存在本地浏览器</div>
+    </div>
 
+    <div class="cards-grid">
     <!-- 认证保活 -->
     <div class="card">
         <div class="card-title"><span class="icon">🔐</span> 认证保活</div>
@@ -191,15 +407,35 @@
             <div class="control"><input type="checkbox" id="cfg-dateFormatEnabled"></div>
         </div>
         <div class="form-row full">
-            <label>日期格式 <span class="help-text">Y年 M月 D日 H时 m分 s秒</span></label>
+            <label>日期格式 <span class="help-text">Y年 M月 D日 H时 m分 s秒，选择"自定义"可输入格式</span></label>
             <div class="control">
                 <select id="cfg-dateFormatString">
-                    <option value="YYYY-MM-DD HH:mm:ss">2025-01-20 18:30:00</option>
-                    <option value="YY-MM-DD HH:mm:ss">25-01-20 18:30:00</option>
-                    <option value="YYYY/MM/DD HH:mm">2025/01/20 18:30</option>
-                    <option value="MM-DD HH:mm">01-20 18:30</option>
-                    <option value="HH:mm:ss">18:30:00</option>
+                    <option value="YYYY-MM-DD HH:mm:ss">2025-01-20 18:30:00 (标准格式)</option>
+                    <option value="YY-MM-DD HH:mm:ss">25-01-20 18:30:00 (短年份)</option>
+                    <option value="YYYY/MM/DD HH:mm:ss">2025/01/20 18:30:00 (斜杠分隔)</option>
+                    <option value="YYYY-MM-DD HH:mm">2025-01-20 18:30 (无秒)</option>
+                    <option value="YYYY/MM/DD HH:mm">2025/01/20 18:30 (斜杠无秒)</option>
+                    <option value="MM-DD HH:mm">01-20 18:30 (月日时分)</option>
+                    <option value="YYYY年MM月DD日 HH:mm:ss">2025年01月20日 18:30:00 (中文)</option>
+                    <option value="YYYY年MM月DD日">2025年01月20日 (仅日期)</option>
+                    <option value="MM月DD日 HH:mm">01月20日 18:30 (中文月日)</option>
+                    <option value="HH:mm:ss">18:30:00 (仅时间)</option>
+                    <option value="HH:mm">18:30 (时分)</option>
+                    <option value="YYYY.MM.DD HH:mm:ss">2025.01.20 18:30:00 (点分隔)</option>
+                    <option value="DD/MM/YYYY HH:mm:ss">20/01/2025 18:30:00 (欧洲格式)</option>
+                    <option value="MM/DD/YYYY HH:mm:ss">01/20/2025 18:30:00 (美式格式)</option>
+                    <option value="__CUSTOM__">自定义格式...</option>
                 </select>
+            </div>
+        </div>
+        <div class="form-row full" id="dateFormatCustomRow" style="display: none;">
+            <label>自定义格式 <span class="help-text">格式说明：YYYY=4位年，YY=2位年，MM=月，DD=日，HH=时，mm=分，ss=秒</span></label>
+            <div class="control">
+                <input type="text" id="cfg-dateFormatCustom" placeholder="例如: YYYY-MM-DD HH:mm:ss" style="font-family: monospace;">
+                <div class="help-text" style="margin-top: 4px;">
+                    示例：<code>YYYY-MM-DD HH:mm:ss</code> → 2025-01-20 18:30:00<br>
+                    示例：<code>YYYY年MM月DD日</code> → 2025年01月20日
+                </div>
             </div>
         </div>
     </div>
@@ -211,6 +447,7 @@
             <label>启用搜索工具栏 <span class="help-text">Ctrl+F 打开自定义表格搜索</span></label>
             <div class="control"><input type="checkbox" id="cfg-searchToolbarEnabled"></div>
         </div>
+    </div>
     </div>
 
     <!-- 保存按钮 -->

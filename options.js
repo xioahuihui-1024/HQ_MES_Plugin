@@ -64,6 +64,7 @@ const CONFIG_FIELDS = [
     // 日期
     { key: 'dateFormatEnabled', type: 'checkbox' },
     { key: 'dateFormatString', type: 'select' },
+    { key: 'dateFormatCustom', type: 'text' },
     // 搜索
     { key: 'searchToolbarEnabled', type: 'checkbox' }
 ];
@@ -88,6 +89,44 @@ function loadConfig() {
                 el.value = cfg[field.key];
             }
         });
+        
+        // [新增] 处理日期格式自定义选项
+        const dateFormatSelect = getElement('dateFormatString');
+        const dateFormatCustom = getElement('dateFormatCustom');
+        const customRow = document.getElementById('dateFormatCustomRow');
+        
+        if (dateFormatSelect && dateFormatCustom && customRow) {
+            // 检查是否使用了自定义格式
+            const currentFormat = cfg.dateFormatString || DEFAULT_CFG.dateFormatString;
+            const isCustom = !dateFormatSelect.querySelector(`option[value="${currentFormat}"]`);
+            
+            if (isCustom && currentFormat !== '__CUSTOM__') {
+                // 当前格式不在预设列表中，显示为自定义
+                dateFormatSelect.value = '__CUSTOM__';
+                dateFormatCustom.value = currentFormat;
+                customRow.style.display = 'block';
+            } else if (currentFormat === '__CUSTOM__') {
+                // 如果保存的是 __CUSTOM__，使用自定义输入框的值
+                dateFormatCustom.value = cfg.dateFormatCustom || DEFAULT_CFG.dateFormatString;
+                customRow.style.display = 'block';
+            } else {
+                customRow.style.display = 'none';
+            }
+            
+            // 监听下拉框变化
+            dateFormatSelect.addEventListener('change', function() {
+                if (this.value === '__CUSTOM__') {
+                    customRow.style.display = 'block';
+                    if (!dateFormatCustom.value) {
+                        dateFormatCustom.value = DEFAULT_CFG.dateFormatString;
+                    }
+                    dateFormatCustom.focus();
+                } else {
+                    customRow.style.display = 'none';
+                    dateFormatCustom.value = '';
+                }
+            });
+        }
     });
 }
 
@@ -106,6 +145,21 @@ function saveConfig() {
             cfg[field.key] = el.value;
         }
     });
+    
+    // [新增] 处理日期格式：如果选择了自定义，使用自定义输入框的值
+    const dateFormatSelect = getElement('dateFormatString');
+    const dateFormatCustom = getElement('dateFormatCustom');
+    if (dateFormatSelect && dateFormatCustom) {
+        if (dateFormatSelect.value === '__CUSTOM__') {
+            // 使用自定义格式
+            cfg.dateFormatString = dateFormatCustom.value.trim() || DEFAULT_CFG.dateFormatString;
+            cfg.dateFormatCustom = dateFormatCustom.value.trim();
+        } else {
+            // 使用预设格式
+            cfg.dateFormatString = dateFormatSelect.value;
+            cfg.dateFormatCustom = '';
+        }
+    }
     
     // 自动生成高亮背景色
     cfg.highlightBackground = hexToRgba(cfg.highlightColor, 0.1);

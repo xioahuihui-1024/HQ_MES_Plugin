@@ -469,25 +469,26 @@
                     .mes-resize-handle:hover, .mes-resize-active { background: rgba(24, 144, 255, 0.3); }
                     
                     /* === 设置按钮 === */
-                    #mes-col-settings-btn {
-                        padding: 2px 8px;
-                        font-size: 12px;
+                    #mes-col-settings-btn, #mes-export-btn {
+                        padding: 1px 6px;
+                        font-size: 11px;
                         border: 1px solid #d9d9d9; 
                         background: #fff; 
                         border-radius: 4px;
                         color: #666; 
                         display: inline-flex;
                         align-items: center; 
-                        gap: 4px;
+                        gap: 3px;
                         position: relative; 
                         transition: all 0.3s;
                         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
                         user-select: none;
                         vertical-align: middle; 
-                        height: 24px;
+                        height: 20px;
                         line-height: 1;
+                        cursor: pointer;
                     }
-                    #mes-col-settings-btn:hover { color: #40a9ff; border-color: #40a9ff; }
+                    #mes-col-settings-btn:hover, #mes-export-btn:hover { color: #40a9ff; border-color: #40a9ff; }
                     
                     /* [新增] 按钮脏状态 (有修改时) - 橙色警示 */
                     #mes-col-settings-btn.is-dirty {
@@ -500,12 +501,205 @@
                     }
 
                     /* === 菜单 === */
-                    #mes-col-settings-menu {
+                    #mes-col-settings-menu, #mes-export-menu {
                         position: absolute; display: none; background: white; border: 1px solid #f0f0f0; 
                         box-shadow: 0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08);
                         padding: 0; border-radius: 4px; z-index: 999999;
-                        min-width: 340px; max-height: 500px; overflow-y: auto;
+                        min-width: 200px; max-height: 500px; overflow-y: auto;
                         font-family: "Segoe UI", sans-serif;
+                    }
+                    #mes-export-menu {
+                        min-width: 320px;
+                        max-width: 400px;
+                    }
+                    .mes-export-format-section {
+                        padding: 12px 16px;
+                        border-bottom: 1px solid #f0f0f0;
+                        background: #fff;
+                    }
+                    .mes-export-format-label {
+                        font-size: 12px;
+                        color: #666;
+                        margin-bottom: 8px;
+                        font-weight: 500;
+                    }
+                    .mes-export-format-options {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 8px;
+                    }
+                    .mes-format-option {
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        padding: 6px 10px;
+                        border: 1px solid #d9d9d9;
+                        border-radius: 4px;
+                        background: #fff;
+                        transition: all 0.2s;
+                        font-size: 12px;
+                        user-select: none;
+                        position: relative;
+                        flex: 1;
+                        min-width: 0;
+                    }
+                    .mes-format-option:hover {
+                        border-color: #40a9ff;
+                        color: #40a9ff;
+                    }
+                    .mes-format-option input[type="radio"] {
+                        margin: 0;
+                        margin-right: 6px;
+                        cursor: pointer;
+                        accent-color: #1890ff;
+                    }
+                    .mes-format-option input[type="radio"]:checked + span {
+                        font-weight: 600;
+                        color: #1890ff;
+                    }
+                    .mes-format-option:has(input[type="radio"]:checked) {
+                        border-color: #1890ff;
+                        background: #e6f7ff;
+                    }
+                    .mes-format-help {
+                        margin-left: 4px;
+                        color: #999;
+                        cursor: help;
+                        font-size: 11px;
+                        width: 14px;
+                        height: 14px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        border: 1px solid #d9d9d9;
+                        background: #fafafa;
+                        transition: all 0.2s;
+                    }
+                    .mes-format-help:hover {
+                        border-color: #1890ff;
+                        color: #1890ff;
+                        background: #e6f7ff;
+                    }
+                    .mes-format-tooltip {
+                        position: absolute;
+                        bottom: 100%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        margin-bottom: 6px;
+                        padding: 6px 10px;
+                        background: rgba(0, 0, 0, 0.85);
+                        color: #fff;
+                        font-size: 11px;
+                        border-radius: 4px;
+                        white-space: nowrap;
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.2s;
+                        z-index: 1000001;
+                        max-width: 250px;
+                        white-space: normal;
+                        line-height: 1.4;
+                    }
+                    .mes-format-help:hover .mes-format-tooltip {
+                        opacity: 1;
+                    }
+                    .mes-export-option {
+                        padding: 10px 16px;
+                        border-bottom: 1px solid #f0f0f0;
+                        background: #fafafa;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 12px;
+                        color: #666;
+                        position: relative;
+                    }
+                    .mes-export-option input[type="checkbox"] {
+                        cursor: pointer;
+                        width: 14px;
+                        height: 14px;
+                        accent-color: #1890ff;
+                        flex-shrink: 0;
+                    }
+                    .mes-export-option label {
+                        cursor: pointer;
+                        user-select: none;
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    }
+                    .mes-export-option-help {
+                        color: #999;
+                        cursor: help;
+                        font-size: 11px;
+                        width: 14px;
+                        height: 14px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        border: 1px solid #d9d9d9;
+                        background: #fff;
+                        transition: all 0.2s;
+                        flex-shrink: 0;
+                    }
+                    .mes-export-option-help:hover {
+                        border-color: #1890ff;
+                        color: #1890ff;
+                        background: #e6f7ff;
+                    }
+                    .mes-export-option-help-tooltip {
+                        position: absolute;
+                        bottom: 100%;
+                        left: 16px;
+                        margin-bottom: 6px;
+                        padding: 6px 10px;
+                        background: rgba(0, 0, 0, 0.85);
+                        color: #fff;
+                        font-size: 11px;
+                        border-radius: 4px;
+                        white-space: normal;
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.2s;
+                        z-index: 1000001;
+                        max-width: 280px;
+                        line-height: 1.4;
+                    }
+                    .mes-export-option-help:hover .mes-export-option-help-tooltip {
+                        opacity: 1;
+                    }
+                    .mes-export-actions {
+                        padding: 10px 16px;
+                        display: flex;
+                        gap: 8px;
+                        border-top: 1px solid #f0f0f0;
+                    }
+                    .mes-export-action-btn {
+                        flex: 1;
+                        padding: 6px 10px;
+                        border: 1px solid #d9d9d9;
+                        border-radius: 4px;
+                        background: #fff;
+                        color: #333;
+                        font-size: 12px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 4px;
+                        white-space: nowrap;
+                    }
+                    .mes-export-action-btn:hover {
+                        border-color: #40a9ff;
+                        color: #40a9ff;
+                        background: #f0f8ff;
+                    }
+                    .mes-export-action-btn:active {
+                        background: #e6f7ff;
                     }
                     .mes-menu-header { 
                         padding: 10px 16px; border-bottom: 1px solid #f0f0f0; background: #fff; 
@@ -1071,15 +1265,29 @@
 
                 this.updateBtnState(pageKey);
 
+                // 创建导出按钮
+                const exportBtn = document.createElement('div');
+                exportBtn.id = 'mes-export-btn';
+                exportBtn.innerHTML = `<span>📥</span> 导出`;
+                exportBtn.title = "导出表格数据";
+                exportBtn.style.marginLeft = '8px';
+
                 // 创建 Wrapper (inline-block)
                 const wrapper = document.createElement('div');
                 // margin-left: 10px 让它跟分页下拉框有点距离
                 wrapper.style.cssText = "position:relative; display:inline-block; margin-left: 15px; vertical-align: middle;";
                 wrapper.appendChild(btn);
+                wrapper.appendChild(exportBtn);
 
                 const menu = document.createElement('div');
                 menu.id = 'mes-col-settings-menu';
                 wrapper.appendChild(menu);
+
+                // 导出菜单
+                const exportMenu = document.createElement('div');
+                exportMenu.id = 'mes-export-menu';
+                exportMenu.style.cssText = menu.style.cssText;
+                wrapper.appendChild(exportMenu);
 
                 // [关键修改] 插入到下拉框后面，而不是 divpage 最前面
                 if (targetEl && targetEl.nextSibling) {
@@ -1131,8 +1339,47 @@
                 };
 
                 document.addEventListener('click', (e) => {
-                    if (!wrapper.contains(e.target)) menu.style.display = 'none';
+                    if (!wrapper.contains(e.target)) {
+                        menu.style.display = 'none';
+                        exportMenu.style.display = 'none';
+                    }
                 });
+
+                // 导出按钮事件
+                exportBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVisible = exportMenu.style.display === 'block';
+                    if (!isVisible) {
+                        this.renderExportMenu(exportMenu, table);
+                        exportMenu.style.display = 'block';
+                        
+                        // 智能定位（与视图菜单相同逻辑）
+                        const rect = exportBtn.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
+                        const viewportWidth = window.innerWidth;
+                        
+                        const spaceBelow = viewportHeight - rect.bottom;
+                        const spaceAbove = rect.top;
+                        
+                        if (spaceAbove < 300 && spaceBelow > spaceAbove) {
+                            exportMenu.style.top = '100%';
+                            exportMenu.style.marginTop = '5px';
+                            exportMenu.style.maxHeight = (spaceBelow - 20) + 'px';
+                        } else {
+                            exportMenu.style.bottom = '100%';
+                            exportMenu.style.marginBottom = '5px';
+                            exportMenu.style.maxHeight = Math.min(500, spaceAbove - 20) + 'px';
+                        }
+                        
+                        if (rect.left > viewportWidth / 2) {
+                            exportMenu.style.right = '0';
+                        } else {
+                            exportMenu.style.left = '0';
+                        }
+                    } else {
+                        exportMenu.style.display = 'none';
+                    }
+                };
             },
 
             injectResizeHandles: function(table, pageKey) {
@@ -1232,9 +1479,40 @@
 
                 menu.querySelector('#mes-reset-btn').onclick = () => {
                     if(confirm('恢复默认设置？（会清除所有宽度、顺序和筛选）')) {
+                        // 清除持久化设置
                         delete this.settings[pageKey];
                         this.persist();
-                        location.reload();
+                        
+                        // 清除运行时状态
+                        this.sortState = { colIndex: -1, direction: 'none' };
+                        this.filterState = {};
+                        
+                        // 清除DOM标记，让表格重新处理
+                        table.dataset.mesEnhanced = 'false';
+                        
+                        // 恢复所有列的显示
+                        Array.from(table.rows).forEach(row => {
+                            Array.from(row.cells).forEach(cell => {
+                                cell.classList.remove('mes-col-hidden');
+                            });
+                        });
+                        
+                        // 清除筛选状态（显示所有行）
+                        Array.from(table.querySelectorAll('tr:not(#trfirst)')).forEach(row => {
+                            row.style.display = '';
+                        });
+                        
+                        // 重新计算列宽
+                        this.calculateAutoWidths(table, pageKey);
+                        
+                        // 重新应用设置（这会重置列宽）
+                        this.applyColumnSettings(table, pageKey);
+                        
+                        // 更新按钮状态
+                        this.updateBtnState(pageKey);
+                        
+                        // 重新渲染菜单
+                        this.renderMenuContent(menu, pageKey, table);
                     }
                 };
             },
@@ -1391,6 +1669,389 @@
                 if (this.parentUI.config.saveViewSettings) {
                     localStorage.setItem('MES_TABLE_SETTINGS', JSON.stringify(this.settings));
                 }
+            },
+
+            // 渲染导出菜单
+            renderExportMenu: function(menu, table) {
+                menu.innerHTML = `
+                    <div class="mes-menu-header">
+                        <span>导出数据</span>
+                    </div>
+                    <div class="mes-export-format-section">
+                        <div class="mes-export-format-label">格式：</div>
+                        <div class="mes-export-format-options">
+                            <label class="mes-format-option">
+                                <input type="radio" name="mes-export-format" value="tsv" checked>
+                                <span>TSV</span>
+                                <span class="mes-format-help">
+                                    ?
+                                    <span class="mes-format-tooltip">Tab分隔值，用制表符分隔列，适合Excel等表格软件</span>
+                                </span>
+                            </label>
+                            <label class="mes-format-option">
+                                <input type="radio" name="mes-export-format" value="csv">
+                                <span>CSV</span>
+                                <span class="mes-format-help">
+                                    ?
+                                    <span class="mes-format-tooltip">逗号分隔值，用逗号分隔列，最常用的表格格式</span>
+                                </span>
+                            </label>
+                            <label class="mes-format-option">
+                                <input type="radio" name="mes-export-format" value="txt">
+                                <span>TXT</span>
+                                <span class="mes-format-help">
+                                    ?
+                                    <span class="mes-format-tooltip">文本格式，用空格对齐列，适合阅读和打印</span>
+                                </span>
+                            </label>
+                            <label class="mes-format-option">
+                                <input type="radio" name="mes-export-format" value="json">
+                                <span>JSON</span>
+                                <span class="mes-format-help">
+                                    ?
+                                    <span class="mes-format-tooltip">JSON格式，结构化数据，适合程序处理</span>
+                                </span>
+                            </label>
+                            <label class="mes-format-option">
+                                <input type="radio" name="mes-export-format" value="excel">
+                                <span>Excel</span>
+                                <span class="mes-format-help">
+                                    ?
+                                    <span class="mes-format-tooltip">Excel格式（.xls），HTML表格格式，Excel可以直接打开并转换，完美支持中文</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mes-export-option">
+                        <input type="checkbox" id="mes-export-filter-hidden" checked>
+                        <label for="mes-export-filter-hidden">
+                            过滤隐藏的列和行
+                            <span class="mes-export-option-help">
+                                ?
+                                <span class="mes-export-option-help-tooltip">勾选后只导出当前可见的列和行，取消勾选则导出所有数据（包括被隐藏的列和筛选隐藏的行）</span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="mes-export-actions">
+                        <button type="button" class="mes-export-action-btn" data-action="copy">📋 复制</button>
+                        <button type="button" class="mes-export-action-btn" data-action="download">💾 下载</button>
+                    </div>
+                `;
+
+                const self = this;
+                menu.querySelectorAll('.mes-export-action-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        // [关键修复] 阻止默认行为和事件冒泡，防止页面刷新
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        const format = menu.querySelector('input[name="mes-export-format"]:checked').value;
+                        const action = btn.dataset.action;
+                        const filterHidden = menu.querySelector('#mes-export-filter-hidden').checked;
+                        
+                        // [修复] 使用 setTimeout 确保事件处理完成后再执行导出
+                        setTimeout(() => {
+                            self.exportTable(table, format, action, filterHidden);
+                        }, 0);
+                        
+                        // [修复] 延迟关闭菜单，避免影响导出操作
+                        setTimeout(() => {
+                            menu.style.display = 'none';
+                        }, 100);
+                    });
+                });
+            },
+
+            // 导出表格数据
+            exportTable: function(table, format, action = 'download', filterHidden = true) {
+                // [修复] 使用 try-catch 保护，确保不会影响表格显示
+                try {
+                    // [修复] 在操作前先保存表格引用，防止表格被意外修改
+                    const tbDetail = table.closest('#tbDetail');
+                    if (!tbDetail || !table) {
+                        alert('无法找到表格数据');
+                        return;
+                    }
+
+                    // [修复] 使用快照方式获取数据，避免影响原始表格
+                    const rows = Array.from(table.rows);
+                    if (rows.length === 0) {
+                        alert('表格为空，无法导出');
+                        return;
+                    }
+
+                    // 获取表头（使用快照）
+                    const headers = Array.from(rows[0].cells).map(cell => {
+                        return cell.innerText.trim();
+                    });
+
+                    // 获取数据行（使用快照）
+                    const dataRows = [];
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        // 根据选项决定是否跳过隐藏的行
+                        if (filterHidden && row.style.display === 'none') continue;
+                        
+                        const cells = Array.from(row.cells);
+                        const rowData = [];
+                        
+                        cells.forEach((cell, idx) => {
+                            // 根据选项决定是否跳过隐藏的列
+                            if (filterHidden && cell.classList.contains('mes-col-hidden')) return;
+                            
+                            // 获取单元格文本（去除HTML标签）
+                            let text = cell.innerText || cell.textContent || '';
+                            // 清理文本：去除多余空白
+                            text = text.trim().replace(/\s+/g, ' ');
+                            rowData.push(text);
+                        });
+                        
+                        if (rowData.length > 0) {
+                            dataRows.push(rowData);
+                        }
+                    }
+
+                    // 过滤表头
+                    const visibleHeaders = [];
+                    Array.from(rows[0].cells).forEach((cell, idx) => {
+                        if (!filterHidden || !cell.classList.contains('mes-col-hidden')) {
+                            visibleHeaders.push(headers[idx]);
+                        }
+                    });
+
+                let content = '';
+                let filename = '';
+                let mimeType = '';
+
+                switch (format) {
+                    case 'tsv':
+                        content = this.formatAsTSV([visibleHeaders, ...dataRows]);
+                        filename = `table_${new Date().getTime()}.tsv`;
+                        mimeType = 'text/tab-separated-values';
+                        break;
+
+                    case 'csv':
+                        content = this.formatAsCSV([visibleHeaders, ...dataRows]);
+                        filename = `table_${new Date().getTime()}.csv`;
+                        mimeType = 'text/csv;charset=utf-8';
+                        break;
+
+                    case 'txt':
+                        content = this.formatAsTXT([visibleHeaders, ...dataRows]);
+                        filename = `table_${new Date().getTime()}.txt`;
+                        mimeType = 'text/plain;charset=utf-8';
+                        break;
+
+                    case 'json':
+                        const jsonData = dataRows.map(row => {
+                            const obj = {};
+                            visibleHeaders.forEach((header, idx) => {
+                                obj[header] = row[idx] || '';
+                            });
+                            return obj;
+                        });
+                        content = JSON.stringify(jsonData, null, 2);
+                        filename = `table_${new Date().getTime()}.json`;
+                        mimeType = 'application/json;charset=utf-8';
+                        break;
+
+                    case 'excel':
+                        // Excel格式：生成HTML格式，Excel可以直接打开
+                        content = this.formatAsExcel([visibleHeaders, ...dataRows]);
+                        filename = `table_${new Date().getTime()}.xls`;
+                        mimeType = 'application/vnd.ms-excel';
+                        break;
+                }
+
+                    // 根据操作类型执行
+                    if (action === 'copy') {
+                        // [修复] 使用异步方式复制，避免阻塞
+                        Utils.copyText(content, () => {
+                            setTimeout(() => {
+                                this.showExportSuccess(`已复制到剪贴板 (${format.toUpperCase()})`);
+                            }, 50);
+                        });
+                    } else {
+                        // [修复] 使用异步方式下载，避免阻塞
+                        setTimeout(() => {
+                            this.downloadFile(content, filename, mimeType);
+                            setTimeout(() => {
+                                this.showExportSuccess(`已导出为 ${filename}`);
+                            }, 100);
+                        }, 50);
+                    }
+                } catch (error) {
+                    console.error('导出失败:', error);
+                    alert('导出失败，请重试');
+                }
+            },
+
+            // 格式化为TSV
+            formatAsTSV: function(rows) {
+                return rows.map(row => {
+                    return row.map(cell => {
+                        // 转义TSV特殊字符
+                        const text = String(cell || '').replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
+                        return text;
+                    }).join('\t');
+                }).join('\n');
+            },
+
+            // 格式化为CSV
+            formatAsCSV: function(rows) {
+                return rows.map(row => {
+                    return row.map(cell => {
+                        const text = String(cell || '');
+                        // CSV转义：如果包含逗号、引号或换行，需要用引号包裹，并转义引号
+                        if (text.includes(',') || text.includes('"') || text.includes('\n') || text.includes('\r')) {
+                            return '"' + text.replace(/"/g, '""') + '"';
+                        }
+                        return text;
+                    }).join(',');
+                }).join('\n');
+            },
+
+            // 格式化为TXT（空格分隔）
+            formatAsTXT: function(rows) {
+                // 计算每列的最大宽度
+                const colWidths = [];
+                rows.forEach(row => {
+                    row.forEach((cell, idx) => {
+                        const width = String(cell || '').length;
+                        if (!colWidths[idx] || width > colWidths[idx]) {
+                            colWidths[idx] = width;
+                        }
+                    });
+                });
+
+                // 格式化输出
+                return rows.map(row => {
+                    return row.map((cell, idx) => {
+                        const text = String(cell || '');
+                        const width = colWidths[idx] || 10;
+                        return text.padEnd(width, ' ');
+                    }).join('  '); // 两空格分隔
+                }).join('\n');
+            },
+
+            // 格式化为Excel（HTML格式，Excel可以打开）
+            formatAsExcel: function(rows) {
+                // 使用HTML表格格式，Excel可以直接打开HTML文件并转换为Excel格式
+                // 这是最兼容的方式，支持中文且不需要额外的库
+                let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>导出数据</title></head><body><table border="1">';
+                
+                rows.forEach((row, rowIdx) => {
+                    html += '<tr>';
+                    row.forEach(cell => {
+                        const cellValue = String(cell || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                        const tag = rowIdx === 0 ? 'th' : 'td';
+                        html += `<${tag}>${cellValue}</${tag}>`;
+                    });
+                    html += '</tr>';
+                });
+                
+                html += '</table></body></html>';
+                
+                // 使用UTF-8 BOM确保中文正确显示
+                return '\uFEFF' + html;
+            },
+
+            // 下载文件
+            downloadFile: function(content, filename, mimeType) {
+                // [修复] 创建Blob，确保编码正确
+                const blob = new Blob([content], { type: mimeType });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                // [关键修复] 设置 target 为 _blank 防止页面跳转
+                a.target = '_blank';
+                // [关键修复] 添加 rel 属性，防止安全问题
+                a.rel = 'noopener noreferrer';
+                
+                document.body.appendChild(a);
+                
+                // [关键修复] 使用 setTimeout 确保 DOM 更新完成，并阻止默认行为
+                setTimeout(() => {
+                    // 创建鼠标事件来触发下载，而不是直接 click
+                    const event = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    a.dispatchEvent(event);
+                    
+                    // [修复] 延迟移除，确保下载完成
+                    setTimeout(() => {
+                        if (a.parentElement) {
+                            document.body.removeChild(a);
+                        }
+                        URL.revokeObjectURL(url);
+                    }, 200);
+                }, 10);
+            },
+
+            // 显示导出成功提示
+            showExportSuccess: function(message) {
+                // 移除之前的提示（如果存在）
+                const existingTip = document.getElementById('mes-export-success-tip');
+                if (existingTip) {
+                    existingTip.remove();
+                }
+
+                const tip = document.createElement('div');
+                tip.id = 'mes-export-success-tip';
+                tip.textContent = '✅ ' + message;
+                tip.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #52c41a;
+                    color: white;
+                    padding: 10px 16px;
+                    border-radius: 4px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 1000001;
+                    font-family: "Segoe UI", sans-serif;
+                    font-size: 13px;
+                    animation: mesSlideInRight 0.3s ease-out;
+                    pointer-events: none;
+                `;
+                
+                // 添加动画样式
+                if (!document.getElementById('mes-export-anim-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'mes-export-anim-style';
+                    style.textContent = `
+                        @keyframes mesSlideInRight {
+                            from {
+                                transform: translateX(100%);
+                                opacity: 0;
+                            }
+                            to {
+                                transform: translateX(0);
+                                opacity: 1;
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(tip);
+                
+                // 延长显示时间到3.5秒，让用户看清楚
+                setTimeout(() => {
+                    tip.style.opacity = '0';
+                    tip.style.transition = 'opacity 0.4s ease-out';
+                    setTimeout(() => {
+                        if (tip.parentElement) {
+                            tip.remove();
+                        }
+                    }, 400);
+                }, 3500);
             }
         },
 
