@@ -2,17 +2,17 @@ const DEFAULT_CFG = {
     username: '',
     password: '',
     keepAliveEnabled: false, // [不掉登录 账号保活] 默认关闭
-    tableManagerEnabled: true, // 表格管理
+    tableManagerEnabled: false, // 表格管理
     saveViewSettings: false, // 默认不保存
     stickyHeaderEnabled: true, // 顶栏固定
-    highlightColor: '#0078d7',
+    highlightColor: '#FF6600',
     highlightBackground: 'rgba(0,120,215,0.08)',
     highlightEnabled: true,
     tbFixEnabled: true,
     tbMinHeight: 580,
     tbTruncateThreshold: 30,
     dateFormatEnabled: true,
-    dateFormatString: 'YY-MM-DD HH:mm:ss'
+    dateFormatString: 'YYYY-MM-DD HH:mm:ss'
 
 };
 

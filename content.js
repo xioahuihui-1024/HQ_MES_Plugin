@@ -11,6 +11,14 @@
 
     // --- 1. 工具模块 (Utils) ---
     const Utils = {
+        // 检查扩展上下文是否有效
+        isExtensionValid: function() {
+            try {
+                return !!(chrome && chrome.runtime && chrome.runtime.id);
+            } catch (e) {
+                return false;
+            }
+        },
         // 安全等待 DOM 加载
         waitDOM: function (callback) {
             if (document.body && document.readyState !== 'loading') {
@@ -92,6 +100,11 @@
                 return;
             }
 
+            if (!Utils.isExtensionValid()) {
+                this.isHandling = false;
+                return;
+            }
+
             const storage = await new Promise(r => chrome.storage.local.get(['mes_manual_logout'], r));
             if (storage.mes_manual_logout) {
                 this.isHandling = false;
@@ -109,7 +122,9 @@
                     this.isHandling = false;
                     if (response && response.success) {
                         console.log('✅ [Auth] 续期成功');
-                        chrome.storage.local.remove('mes_manual_logout');
+                        if (Utils.isExtensionValid()) {
+                            chrome.storage.local.remove('mes_manual_logout');
+                        }
                         setTimeout(() => location.reload(), 500);
                     } else {
                         UIModule.showOverlay("❌ 续期失败，请检查密码", true);
@@ -203,7 +218,9 @@
                     if (link.innerText.includes("退出")) {
                         link.dataset.mesLogoutBound = "true";
                         link.addEventListener('click', () => {
-                            chrome.runtime.sendMessage({action: "MANUAL_LOGOUT"});
+                            if (Utils.isExtensionValid()) {
+                                chrome.runtime.sendMessage({action: "MANUAL_LOGOUT"});
+                            }
                         });
                     }
                 });
@@ -231,6 +248,15 @@
 
         injectStyles: function () {
             Utils.waitDOM(() => {
+                // 引入 Google Fonts - JetBrains Mono
+                if (!document.getElementById('mes-google-fonts')) {
+                    const fontLink = document.createElement('link');
+                    fontLink.id = 'mes-google-fonts';
+                    fontLink.rel = 'stylesheet';
+                    fontLink.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap';
+                    document.head.appendChild(fontLink);
+                }
+                
                 let style = document.getElementById('mes-dynamic-style');
                 if (!style) {
                     style = document.createElement('style');
@@ -245,7 +271,7 @@
                     #tbDetail .tdContextColumn td,
                     #tbDetail th { 
                         position: sticky !important; top: 0 !important; z-index: 20 !important; 
-                        background-color: #f7f7f7 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+                        background-color: #f7f7f7 !important; box-shadow: 0 3px 1px rgba(0,0,0,0.08);
                     }
                 ` : '';
 
@@ -254,14 +280,114 @@
                     .mes-highlight { background-color: ${cfg.highlightBackground || '#eef'} !important; color: ${cfg.highlightColor} !important; border: 1px solid ${cfg.highlightColor}; border-radius: 4px; padding: 2px 5px !important; }
                     
                     /* === 表格基础 === */
-                    #tbDetail table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
-                    #tbDetail th, #tbDetail td { border: 1px solid #e8e8e8; padding: 8px 8px; position: relative; font-size: 12px; }
+                    #tbDetail table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; font-family: "JetBrains Mono", "Consolas", monospace; }
+                    #tbDetail th, #tbDetail td { border: 1px solid #e8e8e8; padding: 3px 2px; position: relative; font-size: 12px; }
 
                     /* === 单行截断 === */
                     .mes-table-cell-fix { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; box-sizing: border-box; }
                     .mes-truncated-cell { cursor: pointer; }
                     .mes-truncated-cell:hover { color: #0078d7; font-weight: 500; }
                     .mes-col-hidden { display: none !important; }
+                    
+                    /* === 搜索命中展开样式 === */
+                    .mes-search-expanded { 
+                        white-space: normal !important; 
+                        overflow: visible !important; 
+                        text-overflow: clip !important;
+                    }
+                    .mes-search-hit {
+                        background-color: #fffbe6 !important;
+                    }
+                    .mes-search-current {
+                        background-color: #fff1b8 !important;
+                    }
+                    /* 关键词高亮样式 */
+                    mark.mes-keyword-highlight {
+                        background-color: #fadb14 !important;
+                        color: #000 !important;
+                        padding: 1px 2px;
+                        border-radius: 2px;
+                        font-weight: 500;
+                    }
+                    mark.mes-keyword-current {
+                        background-color: #fa8c16 !important;
+                        color: #fff !important;
+                        box-shadow: 0 0 6px rgba(250, 140, 22, 0.8);
+                    }
+                    /* 保留链接样式 */
+                    .mes-table-cell-fix a { color: #1890ff; text-decoration: underline; }
+                    .mes-table-cell-fix a:hover { color: #40a9ff; }
+                    .mes-table-cell-fix img { max-width: 100px; max-height: 60px; vertical-align: middle; }
+                    
+                    /* === 自定义搜索工具栏 === */
+                    #mes-search-toolbar {
+                        position: fixed;
+                        top: -70px;
+                        right: 20px;
+                        z-index: 999999;
+                        background: #fff;
+                        border: 1px solid #d9d9d9;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        padding: 10px 14px;
+                        transition: top 0.3s ease;
+                        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+                    }
+                    #mes-search-toolbar.mes-search-visible {
+                        top: 10px;
+                    }
+                    .mes-search-inner {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .mes-search-icon {
+                        font-size: 18px;
+                    }
+                    #mes-search-input {
+                        width: 220px;
+                        padding: 8px 12px;
+                        border: 1px solid #d9d9d9;
+                        border-radius: 4px;
+                        font-size: 15px;
+                        outline: none;
+                        transition: border-color 0.3s;
+                    }
+                    #mes-search-input:focus {
+                        border-color: #40a9ff;
+                        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+                    }
+                    .mes-search-count {
+                        font-size: 14px;
+                        color: #666;
+                        min-width: 50px;
+                        text-align: center;
+                    }
+                    .mes-search-nav {
+                        padding: 6px 10px;
+                        border: 1px solid #d9d9d9;
+                        background: #fff;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: all 0.2s;
+                    }
+                    .mes-search-nav:hover {
+                        border-color: #40a9ff;
+                        color: #40a9ff;
+                    }
+                    .mes-search-close {
+                        padding: 6px 10px;
+                        border: none;
+                        background: transparent;
+                        cursor: pointer;
+                        font-size: 16px;
+                        color: #999;
+                        transition: color 0.2s;
+                    }
+                    .mes-search-close:hover {
+                        color: #ff4d4f;
+                    }
 
                     ${stickyCss}
 
@@ -483,9 +609,31 @@
                 table.style.tableLayout = 'auto';
                 const headers = Array.from(table.rows[0].cells);
                 const widths = {};
-                const MAX_WIDTH = 300; const MIN_WIDTH = 60;
-                headers.forEach(th => {
-                    let w = th.offsetWidth;
+                const MAX_WIDTH = 850; const MIN_WIDTH = 6; // [优化] 增大最大和最小宽度
+                
+                // [修复] 遍历所有行，找出每列的最大内容宽度
+                headers.forEach((th, colIdx) => {
+                    let maxWidth = th.offsetWidth;
+                    
+                    // 遍历数据行，找最大宽度
+                    for (let i = 1; i < Math.min(table.rows.length, 12); i++) { // 只检查前12行，避免性能问题
+                        const cell = table.rows[i].cells[colIdx];
+                        if (cell) {
+                            // 临时移除截断样式以获取真实宽度
+                            const originalStyle = cell.style.cssText;
+                            cell.style.whiteSpace = 'nowrap';
+                            cell.style.overflow = 'visible';
+                            const cellWidth = cell.scrollWidth;
+                            cell.style.cssText = originalStyle;
+                            
+                            if (cellWidth > maxWidth) {
+                                maxWidth = cellWidth;
+                            }
+                        }
+                    }
+                    
+                    // 加一点余量（padding + border）
+                    let w = maxWidth + 10;
                     if (w > MAX_WIDTH) w = MAX_WIDTH;
                     if (w < MIN_WIDTH) w = MIN_WIDTH;
                     widths[th.innerText.trim()] = w;
@@ -544,10 +692,24 @@
                     if (rIdx === 0) return;
                     Array.from(row.cells).forEach((cell, cIdx) => {
                         let text = cell.innerText.trim();
-                        cell.innerHTML = `<div class="mes-table-cell-fix">${Utils.escapeHtml(text)}</div>`;
+                        // [优化1] 保留原始 HTML 内容（如链接、图片标签），而不是纯文本
+                        const originalHtml = cell.innerHTML.trim();
+                        // 检查是否包含 HTML 标签（如 <a>, <img>）
+                        const hasHtmlTags = /<[^>]+>/.test(originalHtml);
+                        
+                        // [修复] 计算实际内容长度：对于有 HTML 标签的，用 HTML 长度判断；纯文本用 text 长度
+                        const contentLength = hasHtmlTags ? originalHtml.length : text.length;
+                        
+                        if (hasHtmlTags) {
+                            // 保留原始 HTML，只包裹一层 div
+                            cell.innerHTML = `<div class="mes-table-cell-fix">${originalHtml}</div>`;
+                        } else {
+                            // 纯文本则转义
+                            cell.innerHTML = `<div class="mes-table-cell-fix">${Utils.escapeHtml(text)}</div>`;
+                        }
                         const div = cell.firstChild;
 
-                        if (config.dateFormatEnabled) {
+                        if (config.dateFormatEnabled && !hasHtmlTags) {
                             const isTime = /^20\d{12}$/.test(text);
                             if (isTime || (dateCols.includes(cIdx) && isTime)) {
                                 text = Utils.formatTimestamp(text, config.dateFormatString);
@@ -556,17 +718,264 @@
                             }
                         }
 
-                        if (text.length > truncateLen) {
+                        // [修复] 使用 contentLength 判断是否需要截断
+                        if (contentLength > truncateLen) {
                             div.classList.add('mes-truncated-cell');
-                            cell.addEventListener('mouseenter', (e) => this.parentUI.SmartTooltip.show(e.target, text));
+                            // 存储原始内容用于搜索和显示
+                            div.dataset.fullText = text;
+                            div.dataset.fullHtml = originalHtml;
+                            div.dataset.hasHtml = hasHtmlTags ? '1' : '0';
+                            
+                            cell.addEventListener('mouseenter', (e) => {
+                                // 如果已展开，不显示 tooltip
+                                if (div.classList.contains('mes-search-expanded')) return;
+                                this.parentUI.SmartTooltip.show(e.target, text || originalHtml.replace(/<[^>]+>/g, ''));
+                            });
                             cell.addEventListener('mouseleave', () => this.parentUI.SmartTooltip.hide());
                             cell.addEventListener('click', (e) => {
+                                // 如果点击的是链接，不要阻止默认行为
+                                if (e.target.tagName === 'A' || e.target.tagName === 'IMG') return;
                                 e.stopPropagation();
                                 this.parentUI.SmartTooltip.hide();
-                                this.parentUI.showDetailModal(text);
+                                // 显示模态框时，如果有 HTML 标签，显示原始 HTML 内容
+                                this.parentUI.showDetailModal(hasHtmlTags ? originalHtml : text, hasHtmlTags);
                             });
                         }
                     });
+                });
+                
+                // [优化2] 注入自定义搜索工具栏
+                this.injectSearchToolbar(table);
+            },
+            
+            // [新增] 自定义页内搜索工具栏
+            injectSearchToolbar: function(table) {
+                // 避免重复注入
+                if (document.getElementById('mes-search-toolbar')) return;
+                
+                const self = this;
+                const toolbar = document.createElement('div');
+                toolbar.id = 'mes-search-toolbar';
+                toolbar.innerHTML = `
+                    <div class="mes-search-inner">
+                        <span class="mes-search-icon">🔍</span>
+                        <input type="text" id="mes-search-input" placeholder="表格内搜索..." autocomplete="off">
+                        <span id="mes-search-count" class="mes-search-count"></span>
+                        <button id="mes-search-prev" class="mes-search-nav" title="上一个 (Shift+Enter)">▲</button>
+                        <button id="mes-search-next" class="mes-search-nav" title="下一个 (Enter)">▼</button>
+                        <button id="mes-search-close" class="mes-search-close" title="关闭 (Esc)">✕</button>
+                    </div>
+                `;
+                document.body.appendChild(toolbar);
+                
+                const input = document.getElementById('mes-search-input');
+                const countEl = document.getElementById('mes-search-count');
+                const prevBtn = document.getElementById('mes-search-prev');
+                const nextBtn = document.getElementById('mes-search-next');
+                const closeBtn = document.getElementById('mes-search-close');
+                
+                let matches = []; // 存储所有匹配的 mark 元素
+                let currentIndex = -1;
+                
+                // 高亮关键词的函数
+                const highlightKeyword = (div, keyword) => {
+                    const fullText = div.dataset.fullText || div.innerText || '';
+                    const hasHtml = div.dataset.hasHtml === '1';
+                    const originalHtml = div.dataset.fullHtml || div.innerHTML;
+                    
+                    // 如果是纯文本，直接高亮
+                    if (!hasHtml) {
+                        const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        const highlighted = fullText.replace(regex, '<mark class="mes-keyword-highlight">$1</mark>');
+                        div.innerHTML = highlighted;
+                    } else {
+                        // 有 HTML 标签的情况，只高亮文本节点
+                        const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        // 简单处理：先显示原始 HTML，再在文本部分高亮
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = originalHtml;
+                        self.highlightTextNodes(tempDiv, regex);
+                        div.innerHTML = tempDiv.innerHTML;
+                    }
+                    
+                    // 展开单元格
+                    div.classList.add('mes-search-expanded');
+                    
+                    // 返回这个 div 中所有的 mark 元素
+                    return Array.from(div.querySelectorAll('mark.mes-keyword-highlight'));
+                };
+                
+                // 搜索逻辑
+                const doSearch = (keyword) => {
+                    // 清除之前的高亮
+                    self.clearSearchHighlight(table);
+                    matches = [];
+                    currentIndex = -1;
+                    
+                    if (!keyword || keyword.length < 1) {
+                        countEl.textContent = '';
+                        return;
+                    }
+                    
+                    const lowerKeyword = keyword.toLowerCase();
+                    
+                    // 遍历所有数据行
+                    Array.from(table.rows).forEach((row, rIdx) => {
+                        if (rIdx === 0) return; // 跳过表头
+                        
+                        Array.from(row.cells).forEach((cell, cIdx) => {
+                            const div = cell.querySelector('.mes-table-cell-fix');
+                            if (!div) return;
+                            
+                            // 获取完整内容（包括被截断的）
+                            const fullText = (div.dataset.fullText || div.innerText || '').toLowerCase();
+                            const fullHtml = (div.dataset.fullHtml || div.innerHTML || '').toLowerCase();
+                            
+                            if (fullText.includes(lowerKeyword) || fullHtml.includes(lowerKeyword)) {
+                                // 高亮关键词并收集 mark 元素
+                                const marks = highlightKeyword(div, keyword);
+                                marks.forEach(mark => {
+                                    matches.push({ mark, cell, div, row });
+                                });
+                                cell.classList.add('mes-search-hit');
+                            }
+                        });
+                    });
+                    
+                    // 更新计数
+                    if (matches.length > 0) {
+                        currentIndex = 0;
+                        countEl.textContent = `1/${matches.length}`;
+                        self.scrollToMatch(matches[0]);
+                    } else {
+                        countEl.textContent = '0/0';
+                    }
+                };
+                
+                // 跳转到下一个
+                const goNext = () => {
+                    if (matches.length === 0) return;
+                    // 移除当前高亮
+                    if (currentIndex >= 0 && matches[currentIndex]) {
+                        matches[currentIndex].mark.classList.remove('mes-keyword-current');
+                        matches[currentIndex].cell.classList.remove('mes-search-current');
+                    }
+                    currentIndex = (currentIndex + 1) % matches.length;
+                    countEl.textContent = `${currentIndex + 1}/${matches.length}`;
+                    self.scrollToMatch(matches[currentIndex]);
+                };
+                
+                // 跳转到上一个
+                const goPrev = () => {
+                    if (matches.length === 0) return;
+                    if (currentIndex >= 0 && matches[currentIndex]) {
+                        matches[currentIndex].mark.classList.remove('mes-keyword-current');
+                        matches[currentIndex].cell.classList.remove('mes-search-current');
+                    }
+                    currentIndex = (currentIndex - 1 + matches.length) % matches.length;
+                    countEl.textContent = `${currentIndex + 1}/${matches.length}`;
+                    self.scrollToMatch(matches[currentIndex]);
+                };
+                
+                // 关闭搜索
+                const closeSearch = () => {
+                    toolbar.classList.remove('mes-search-visible');
+                    self.clearSearchHighlight(table);
+                    input.value = '';
+                    countEl.textContent = '';
+                    matches = [];
+                    currentIndex = -1;
+                };
+                
+                // 绑定事件
+                let debounceTimer;
+                input.addEventListener('input', (e) => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => doSearch(e.target.value), 200);
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (e.shiftKey) goPrev();
+                        else goNext();
+                    } else if (e.key === 'Escape') {
+                        closeSearch();
+                    }
+                });
+                
+                prevBtn.addEventListener('click', goPrev);
+                nextBtn.addEventListener('click', goNext);
+                closeBtn.addEventListener('click', closeSearch);
+                
+                // 监听 Ctrl+F，显示自定义搜索栏
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                        // 检查当前页面是否有表格
+                        if (table && table.rows.length > 1) {
+                            e.preventDefault(); // 阻止浏览器默认搜索
+                            toolbar.classList.add('mes-search-visible');
+                            input.focus();
+                            input.select();
+                        }
+                    }
+                    if (e.key === 'Escape' && toolbar.classList.contains('mes-search-visible')) {
+                        closeSearch();
+                    }
+                });
+            },
+            
+            // 递归高亮文本节点中的关键词
+            highlightTextNodes: function(element, regex) {
+                const childNodes = Array.from(element.childNodes);
+                childNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.textContent;
+                        if (regex.test(text)) {
+                            const span = document.createElement('span');
+                            span.innerHTML = text.replace(regex, '<mark class="mes-keyword-highlight">$1</mark>');
+                            node.parentNode.replaceChild(span, node);
+                        }
+                    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'MARK') {
+                        this.highlightTextNodes(node, regex);
+                    }
+                });
+            },
+            
+            // 滚动到匹配项
+            scrollToMatch: function(match) {
+                if (!match) return;
+                
+                // 高亮当前关键词
+                match.mark.classList.add('mes-keyword-current');
+                match.cell.classList.add('mes-search-current');
+                
+                // 滚动到可视区域 - 滚动到 mark 元素
+                match.mark.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                });
+            },
+            
+            // 清除搜索高亮
+            clearSearchHighlight: function(table) {
+                // 恢复原始内容
+                table.querySelectorAll('.mes-search-expanded').forEach(div => {
+                    const hasHtml = div.dataset.hasHtml === '1';
+                    if (hasHtml) {
+                        div.innerHTML = div.dataset.fullHtml || div.innerHTML;
+                    } else {
+                        const fullText = div.dataset.fullText || div.innerText;
+                        div.innerHTML = Utils.escapeHtml(fullText);
+                    }
+                    div.classList.remove('mes-search-expanded');
+                });
+                table.querySelectorAll('.mes-search-hit').forEach(el => {
+                    el.classList.remove('mes-search-hit');
+                });
+                table.querySelectorAll('.mes-search-current').forEach(el => {
+                    el.classList.remove('mes-search-current');
                 });
             },
 
@@ -960,10 +1369,16 @@
                 overlay.innerHTML = `<div style="text-align:center;"><div style="font-size: 40px; margin-bottom: 20px;">${isError ? '⚠️' : '🍪'}</div><div>${msg}</div>${isError ? '<br><a href="Login.aspx" style="color:#0078d7; font-size:16px;">转到登录页</a>' : ''}</div>`;
             });
         },
-        showDetailModal: function(content) {
+        showDetailModal: function(content, isHtml = false) {
             const container = document.getElementById('mes-modal-container');
             if (!container) return;
-            container.innerHTML = `<div class="mes-modal-overlay" id="mes-modal-close-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;display:flex;justify-content:center;align-items:center;"><div class="mes-modal-content" style="background:white;padding:20px;border-radius:8px;width:600px;max-height:80vh;display:flex;flex-direction:column;"><div style="display:flex;justify-content:space-between;margin-bottom:15px;border-bottom:1px solid #eee;"><h3 style="margin:0;color:#0078d7;">📄 完整内容</h3><span id="mes-modal-close-btn" style="cursor:pointer;font-size:24px;">×</span></div><div id="mes-modal-text" style="flex:1;overflow-y:auto;padding:10px;background:#f9f9f9;border:1px solid #eee;white-space:pre-wrap;word-break:break-all;">${Utils.escapeHtml(content)}</div><div style="margin-top:15px;text-align:right;"><span id="mes-copy-tip" style="color:green;margin-right:10px;opacity:0;transition:opacity 0.5s;">✅ 已复制!</span><button id="mes-btn-copy" style="padding:6px 15px;background:#0078d7;color:white;border:none;border-radius:4px;cursor:pointer;">复制</button></div></div></div>`;
+            
+            // 根据是否是 HTML 内容决定显示方式
+            const displayContent = isHtml ? content : Utils.escapeHtml(content);
+            const titleIcon = isHtml ? '🔗' : '📄';
+            const titleText = isHtml ? '完整内容 (含链接)' : '完整内容';
+            
+            container.innerHTML = `<div class="mes-modal-overlay" id="mes-modal-close-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;display:flex;justify-content:center;align-items:center;"><div class="mes-modal-content" style="background:white;padding:20px;border-radius:8px;width:600px;max-height:80vh;display:flex;flex-direction:column;"><div style="display:flex;justify-content:space-between;margin-bottom:15px;border-bottom:1px solid #eee;"><h3 style="margin:0;color:#0078d7;">${titleIcon} ${titleText}</h3><span id="mes-modal-close-btn" style="cursor:pointer;font-size:24px;">×</span></div><div id="mes-modal-text" style="flex:1;overflow-y:auto;padding:10px;background:#f9f9f9;border:1px solid #eee;white-space:pre-wrap;word-break:break-all;">${displayContent}</div><div style="margin-top:15px;text-align:right;"><span id="mes-copy-tip" style="color:green;margin-right:10px;opacity:0;transition:opacity 0.5s;">✅ 已复制!</span><button id="mes-btn-copy" style="padding:6px 15px;background:#0078d7;color:white;border:none;border-radius:4px;cursor:pointer;">复制</button></div></div></div>`;
             const close = () => container.innerHTML = '';
             document.getElementById('mes-modal-close-btn').onclick = close;
             document.getElementById('mes-modal-close-overlay').onclick = (e) => { if (e.target.id === 'mes-modal-close-overlay') close(); };
@@ -986,11 +1401,15 @@
                     document.querySelectorAll('.mes-highlight').forEach(el => el.classList.remove('mes-highlight'));
                     this.classList.add('mes-highlight');
                     const saveHref = href.replace(/^(\.\/|\/)/, '');
-                    chrome.storage.local.set({'mes_last_selected_href': saveHref});
+                    // 检查扩展上下文是否有效
+                    if (Utils.isExtensionValid()) {
+                        chrome.storage.local.set({'mes_last_selected_href': saveHref});
+                    }
                 });
             });
         },
         restoreMenu: function() {
+            if (!Utils.isExtensionValid()) return;
             chrome.storage.local.get(['mes_last_selected_href'], (result) => {
                 const lastHref = result.mes_last_selected_href;
                 if (!lastHref) return;
@@ -1038,6 +1457,10 @@
         },
         load: function () {
             return new Promise(resolve => {
+                if (!Utils.isExtensionValid()) {
+                    resolve(this.default);
+                    return;
+                }
                 chrome.storage.local.get(['mes_config'], (res) => {
                     resolve({...this.default, ...res.mes_config});
                 });
@@ -1050,6 +1473,12 @@
     // ==========================================
     async function init() {
         console.log('[MES-Core] 初始化...');
+
+        // 检查扩展上下文是否有效
+        if (!Utils.isExtensionValid()) {
+            console.warn('[MES-Core] 扩展上下文已失效，跳过初始化');
+            return;
+        }
 
         // 0. [关键修复] 如果当前是主页 (Index.aspx)，说明用户已经正常登录进来了
         // 必须清除之前的“手动退出”标记，否则下次过期时插件会以为用户还想退出
@@ -1115,14 +1544,17 @@
     });
 
     // 监听配置变更
-    chrome.storage.onChanged.addListener((changes) => {
-        if (changes.mes_config) {
-            UIModule.config = {...ConfigModule.default, ...changes.mes_config.newValue};
-            UIModule.injectStyles();
-            // 重置表格处理状态，以便重新格式化
-            document.querySelectorAll('#tbDetail td').forEach(td => delete td.dataset.mesProcessed);
-        }
-    });
+    if (Utils.isExtensionValid()) {
+        chrome.storage.onChanged.addListener((changes) => {
+            if (!Utils.isExtensionValid()) return;
+            if (changes.mes_config) {
+                UIModule.config = {...ConfigModule.default, ...changes.mes_config.newValue};
+                UIModule.injectStyles();
+                // 重置表格处理状态，以便重新格式化
+                document.querySelectorAll('#tbDetail td').forEach(td => delete td.dataset.mesProcessed);
+            }
+        });
+    }
 
     // 启动！
     init();

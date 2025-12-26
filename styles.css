@@ -5,7 +5,7 @@
 
 /* 强制覆盖 MES 表格默认样式 */
 #tbDetail table tr td.mes-truncated-cell {
-    max-width: 320px !important;
+    max-width: 620px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -22,7 +22,6 @@
 
 /* 强制截断的单元格样式 */
 .mes-truncated-cell {
-    /*max-width: 250px !important; !* 限制最大宽度，强制触发截断 *!*/
     white-space: nowrap !important; /* 不许换行 */
     overflow: hidden !important;    /* 超出隐藏 */
     text-overflow: ellipsis !important; /* 显示省略号 */
