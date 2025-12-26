@@ -1,0 +1,258 @@
+{
+  "extName": {
+    "message": "MES Helper Pro",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "An enhancement tool for MES systems. Features auto-login, request replay, table column drag-sort/filter, sticky headers, and smart data display to boost productivity.",
+    "description": "Extension description"
+  },
+  "optionsTitle": {
+    "message": "MES Helper - Settings",
+    "description": "Settings page title"
+  },
+  "authSection": {
+    "message": "Authentication",
+    "description": "Authentication section title"
+  },
+  "username": {
+    "message": "Username",
+    "description": "Username label"
+  },
+  "password": {
+    "message": "Password",
+    "description": "Password label"
+  },
+  "passwordHint": {
+    "message": "Stored locally only",
+    "description": "Password hint"
+  },
+  "enableKeepAlive": {
+    "message": "Enable Auto Keep-Alive",
+    "description": "Keep-alive toggle"
+  },
+  "keepAliveHint": {
+    "message": "Auto re-login and restore data when session expires",
+    "description": "Keep-alive hint"
+  },
+  "testLogin": {
+    "message": "Test Login",
+    "description": "Test login button"
+  },
+  "menuHighlight": {
+    "message": "Menu Highlight",
+    "description": "Menu highlight section title"
+  },
+  "enableHighlight": {
+    "message": "Enable Menu Highlight",
+    "description": "Menu highlight toggle"
+  },
+  "highlightHint": {
+    "message": "Highlight and remember clicked menu items",
+    "description": "Menu highlight hint"
+  },
+  "highlightColor": {
+    "message": "Highlight Color",
+    "description": "Highlight color label"
+  },
+  "tableEnhance": {
+    "message": "Table Enhancement",
+    "description": "Table enhancement section title"
+  },
+  "enableTableFix": {
+    "message": "Enable Table Enhancement",
+    "description": "Table enhancement toggle"
+  },
+  "tableFixHint": {
+    "message": "Master switch, disabling turns off all table features below",
+    "description": "Table enhancement hint"
+  },
+  "tableMinHeight": {
+    "message": "Table Min Height (px)",
+    "description": "Table min height label"
+  },
+  "tableStyle": {
+    "message": "Table Style",
+    "description": "Table style section title"
+  },
+  "tableFont": {
+    "message": "Table Font",
+    "description": "Table font label"
+  },
+  "tableFontSize": {
+    "message": "Font Size",
+    "description": "Font size label"
+  },
+  "tablePadding": {
+    "message": "Cell Padding",
+    "description": "Cell padding label"
+  },
+  "useGoogleFonts": {
+    "message": "Load Google Fonts",
+    "description": "Google fonts toggle"
+  },
+  "googleFontsHint": {
+    "message": "Use local fonts when disabled",
+    "description": "Google fonts hint"
+  },
+  "stickyHeader": {
+    "message": "Sticky Header",
+    "description": "Sticky header section title"
+  },
+  "enableStickyHeader": {
+    "message": "Enable Sticky Header",
+    "description": "Sticky header toggle"
+  },
+  "stickyHeaderHint": {
+    "message": "Keep header fixed at top when scrolling",
+    "description": "Sticky header hint"
+  },
+  "advancedTable": {
+    "message": "Advanced Table Management",
+    "description": "Advanced table section title"
+  },
+  "enableTableManager": {
+    "message": "Enable Table Manager",
+    "description": "Table manager toggle"
+  },
+  "tableManagerHint": {
+    "message": "View button, drag-sort, hide columns, filter",
+    "description": "Table manager hint"
+  },
+  "saveViewSettings": {
+    "message": "Save View Settings",
+    "description": "Save view toggle"
+  },
+  "saveViewHint": {
+    "message": "Preserve column width, order, visibility after refresh",
+    "description": "Save view hint"
+  },
+  "columnWidth": {
+    "message": "Column Width",
+    "description": "Column width section title"
+  },
+  "colMaxWidth": {
+    "message": "Max Column Width (px)",
+    "description": "Max column width label"
+  },
+  "colMinWidth": {
+    "message": "Min Column Width (px)",
+    "description": "Min column width label"
+  },
+  "colSampleRows": {
+    "message": "Sample Rows",
+    "description": "Sample rows label"
+  },
+  "colSampleHint": {
+    "message": "Number of rows to check for auto column width",
+    "description": "Sample rows hint"
+  },
+  "truncateTooltip": {
+    "message": "Truncate & Tooltip",
+    "description": "Truncate section title"
+  },
+  "truncateThreshold": {
+    "message": "Truncate Threshold (chars)",
+    "description": "Truncate threshold label"
+  },
+  "truncateHint": {
+    "message": "Show ellipsis when exceeding, hover to see full content",
+    "description": "Truncate hint"
+  },
+  "dateFormat": {
+    "message": "Date Format",
+    "description": "Date format section title"
+  },
+  "enableDateFormat": {
+    "message": "Enable Date Formatting",
+    "description": "Date format toggle"
+  },
+  "dateFormatHint": {
+    "message": "Auto-format timestamp columns",
+    "description": "Date format hint"
+  },
+  "dateFormatString": {
+    "message": "Date Format",
+    "description": "Date format string label"
+  },
+  "dateFormatStringHint": {
+    "message": "Y=year M=month D=day H=hour m=min s=sec",
+    "description": "Date format string hint"
+  },
+  "searchToolbar": {
+    "message": "Search Toolbar",
+    "description": "Search toolbar section title"
+  },
+  "enableSearch": {
+    "message": "Enable Search Toolbar",
+    "description": "Search toolbar toggle"
+  },
+  "searchHint": {
+    "message": "Ctrl+F to open custom table search",
+    "description": "Search toolbar hint"
+  },
+  "saveAll": {
+    "message": "Save All Settings",
+    "description": "Save button"
+  },
+  "saveSuccess": {
+    "message": "Saved!",
+    "description": "Save success message"
+  },
+  "fillCredentials": {
+    "message": "Please enter username and password",
+    "description": "Fill credentials message"
+  },
+  "testing": {
+    "message": "Testing...",
+    "description": "Testing message"
+  },
+  "requestTimeout": {
+    "message": "Request timeout",
+    "description": "Request timeout message"
+  },
+  "viewSettings": {
+    "message": "View",
+    "description": "View button"
+  },
+  "columnManage": {
+    "message": "Columns",
+    "description": "Column manage title"
+  },
+  "dragToSort": {
+    "message": "Drag to sort",
+    "description": "Drag to sort hint"
+  },
+  "filter": {
+    "message": "Filter",
+    "description": "Filter placeholder"
+  },
+  "searchPlaceholder": {
+    "message": "Search table...",
+    "description": "Search placeholder"
+  },
+  "sessionExpired": {
+    "message": "Session expired, auto-renewing...",
+    "description": "Session expired message"
+  },
+  "renewFailed": {
+    "message": "Renewal failed, please check password",
+    "description": "Renewal failed message"
+  },
+  "noCredentials": {
+    "message": "No credentials configured",
+    "description": "No credentials message"
+  },
+  "autoReplaySuccess": {
+    "message": "Query request auto-replayed",
+    "description": "Auto replay success message"
+  },
+  "queryConditionReset": {
+    "message": "Query conditions may have been reset",
+    "description": "Query condition reset message"
+  },
+  "gotIt": {
+    "message": "Got it",
+    "description": "Got it button"
+  }
+}

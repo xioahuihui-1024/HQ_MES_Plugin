@@ -4,116 +4,219 @@
     <meta charset="UTF-8">
     <title>MES 优化助手 - 设置</title>
     <style>
-        body { font-family: "Segoe UI", sans-serif; background-color: #f4f7f9; padding: 30px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { margin-top: 0; color: #0078d7; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
-        .section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #eee; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; }
-        input[type="text"], input[type="password"], input[type="number"], input[type="color"] {
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #f4f7f9; padding: 20px; color: #333; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #0078d7; margin-bottom: 20px; font-size: 24px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+        .card-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+        .card-title .icon { font-size: 20px; }
+        .form-row { display: flex; align-items: center; margin-bottom: 12px; }
+        .form-row:last-child { margin-bottom: 0; }
+        .form-row label { flex: 1; color: #555; font-size: 14px; }
+        .form-row .control { width: 200px; text-align: right; }
+        .form-row.full .control { width: 100%; text-align: left; margin-top: 8px; }
+        .form-row.full { flex-direction: column; align-items: flex-start; }
+        input[type="text"], input[type="password"], input[type="number"] { 
+            padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; width: 100%; 
         }
-        /* 修复 datalist 箭头在某些浏览器不显示的问题 */
-        input::-webkit-calendar-picker-indicator { opacity: 100; }
-
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
-        .btn-primary { background-color: #0078d7; color: white; }
-        .btn-primary:hover { background-color: #0063b1; }
-        .btn-save { background-color: #28a745; color: white; font-size: 16px; margin-top: 10px;}
-        .btn-save:hover { background-color: #218838; }
-        .login-area { background: #eef7fd; padding: 20px; border-radius: 8px; border: 1px solid #cce5ff; }
-        .status-msg { margin-top: 10px; text-align: center; min-height: 20px; font-weight: 500;}
-        .help-text { font-size: 12px; color: #888; margin-top: 4px; }
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus { 
+            border-color: #40a9ff; outline: none; box-shadow: 0 0 0 2px rgba(24,144,255,0.2); 
+        }
+        input[type="color"] { width: 60px; height: 32px; padding: 2px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; }
+        input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1890ff; cursor: pointer; }
+        select { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; background: #fff; cursor: pointer; }
+        .help-text { font-size: 12px; color: #999; margin-top: 4px; }
+        .btn { padding: 10px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: #1890ff; color: #fff; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-success { background: #52c41a; color: #fff; }
+        .btn-success:hover { background: #73d13d; }
+        .btn-block { width: 100%; }
+        .status-msg { margin-top: 10px; text-align: center; min-height: 20px; font-weight: 500; }
+        .section-sub { margin-left: 24px; padding-left: 12px; border-left: 2px solid #f0f0f0; }
+        .divider { height: 1px; background: #f0f0f0; margin: 16px 0; }
+        .tag { display: inline-block; padding: 2px 8px; font-size: 12px; border-radius: 4px; margin-left: 8px; }
+        .tag-new { background: #e6f7ff; color: #1890ff; }
+        .tag-beta { background: #fff7e6; color: #fa8c16; }
+        .footer { text-align: center; margin-top: 20px; padding: 16px; color: #999; font-size: 12px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>⚙️ MES 优化助手设置</h2>
+    <h1>⚙️ MES 优化助手设置</h1>
 
-    <div class="section login-area">
-        <h3 style="margin-top:0; color:#0056b3;">🚀 一键 Cookie 续期</h3>
-        <div class="form-group">
+    <!-- 认证保活 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">🔐</span> 认证保活</div>
+        <div class="form-row">
             <label>用户名</label>
-            <label for="cfg-user"></label><input type="text" id="cfg-user" placeholder="例如: EP0064">
+            <div class="control"><input type="text" id="cfg-username" placeholder="例如: EP0064"></div>
         </div>
-        <div class="form-group">
-            <label>密码 (仅保存在本地浏览器)</label>
-            <label for="cfg-pwd"></label><input type="password" id="cfg-pwd">
+        <div class="form-row">
+            <label>密码 <span style="color:#999;font-size:12px;">(仅保存在本地)</span></label>
+            <div class="control"><input type="password" id="cfg-password"></div>
         </div>
-        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed #bcdff1; padding-top: 10px;">
-            <label style="color: #d9534f;">
-                <input type="checkbox" id="cfg-keep-alive"> 启用永久保活 (无感自动重登)
-            </label>
-            <div class="help-text">开启后，会自动在后台登录并刷新页面，除非您手动点击了退出。</div>
+        <div class="form-row">
+            <label>启用自动保活 <span class="help-text">Session过期时自动重登并恢复数据</span></label>
+            <div class="control"><input type="checkbox" id="cfg-keepAliveEnabled"></div>
         </div>
-        <button id="btn-refresh-cookie" class="btn btn-primary">🔄 登测刷新 Cookie</button>
-        <div class="help-text">测试账号信息是否正确,如果不正确则该功能无法正常使用，测试成功记得保存哦！！</div>
+        <div class="divider"></div>
+        <button id="btn-test-login" class="btn btn-primary">🔄 测试登录</button>
         <div id="login-status" class="status-msg"></div>
     </div>
 
-    <div class="section">
-        <h3>🎨 界面设置</h3>
-        <div class="form-group">
-            <label><input type="checkbox" id="cfg-highlight-enable"> 启用左侧菜单高亮</label>
+    <!-- 菜单高亮 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">🎨</span> 菜单高亮</div>
+        <div class="form-row">
+            <label>启用菜单高亮 <span class="help-text">点击左侧菜单时高亮显示并记忆</span></label>
+            <div class="control"><input type="checkbox" id="cfg-highlightEnabled"></div>
         </div>
-        <div class="form-group">
+        <div class="form-row">
             <label>高亮颜色</label>
-            <label for="cfg-color"></label><input type="color" id="cfg-color" style="height: 40px; padding: 2px;">
+            <div class="control"><input type="color" id="cfg-highlightColor"></div>
         </div>
     </div>
 
-    <div class="section">
-        <h3>📊 表格优化</h3>
-
-        <div class="form-group">
-            <label><input type="checkbox" id="cfg-tb-enable"> 启用表格样式增强</label>
+    <!-- 表格增强 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">📊</span> 表格增强</div>
+        <div class="form-row">
+            <label>启用表格增强 <span class="help-text">总开关，关闭后下方所有表格功能失效</span></label>
+            <div class="control"><input type="checkbox" id="cfg-tbFixEnabled"></div>
         </div>
-
-        <div class="form-group">
-            <label>单元格截断阈值 (字符数)</label>
-            <label for="cfg-tb-truncate"></label><input type="number" id="cfg-tb-truncate" min="10">
-            <div class="help-text">超过此长度的文本将显示省略号，鼠标悬停显示Tip，点击弹出详情窗口。建议值: 30-50。</div>
+        <div class="form-row">
+            <label>表格区最小高度 (px)</label>
+            <div class="control"><input type="number" id="cfg-tbMinHeight" min="200" max="1200"></div>
         </div>
-
-        <div class="form-group">
-            <label><input type="checkbox" id="cfg-sticky-header"> 📌 启用固定表头 (滚动时锁定首行)</label>
-            <div class="help-text">启用此功能将使表格的表头固定在顶部，不会随页面滚动而滚动。</div>
-        </div>
-
-        <div class="form-group">
-            <label><input type="checkbox" id="cfg-table-manager"> 🛠️ 启用高级表格管理 (拖拽/排序/隐藏)</label>
-            <div class="help-text">启用此功能将使表格支持拖拽排序、隐藏列、列宽拖拽调整。 </div>
-
-
-        </div>
-        <div class="form-group" style="margin-left: 20px; font-size: 13px; color: #666;">
-            <label><input type="checkbox" id="cfg-save-view"> 💾 永久保存视图设置 (默认不勾选，刷新后重置)</label>
-            <div class="help-text">启用此功能将使表格支持保存当前视图设置，下次打开同页面时恢复。（恢复已勾选的 隐藏，排序）</div>
-
-        </div>
-
-        <div class="form-group">
-            <label><input type="checkbox" id="cfg-date-format-enable"> 启用表格日期时间格式化</label>
-        </div>
-
-        <div class="form-group">
-            <label>表格日期时间显示格式</label>
-            <label for="cfg-date-format"></label><input type="text" id="cfg-date-format" list="date-formats" placeholder="双击选择或直接输入...">
-            <datalist id="date-formats">
-                <option value="YYYY-MM-DD HH:mm:ss">标准 (2025-11-20 18:48:17)</option>
-                <option value="Y-MM-DD HH:mm">邪修 (5-11-20 18:48)</option>
-                <option value="YYYY/MM/DD HH:mm">斜杠 (2025/11/20 18:48)</option>
-                <option value="MM-DD HH:mm">简短 (11-20 18:48)</option>
-                <option value="HH:mm:ss">仅时间 (18:48:17)</option>
-                <option value="YYMMDD">紧凑 (251120)</option>
-            </datalist>
-            <div class="help-text">支持代码: Y(年1-4位), MM(月), DD(日), HH(时), mm(分), ss(秒)</div>
-        </div>
-
-
     </div>
 
-    <button id="btn-save" class="btn btn-save">💾 保存所有配置</button>
+    <!-- 表格样式 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">🎯</span> 表格样式</div>
+        <div class="form-row full">
+            <label>表格字体</label>
+            <div class="control">
+                <select id="cfg-tableFontFamily">
+                    <option value='"JetBrains Mono", "Consolas", monospace'>JetBrains Mono (推荐)</option>
+                    <option value='"Consolas", "Monaco", monospace'>Consolas</option>
+                    <option value='"Microsoft YaHei", sans-serif'>微软雅黑</option>
+                    <option value='"Segoe UI", sans-serif'>Segoe UI</option>
+                    <option value='Arial, sans-serif'>Arial</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label>表格字号</label>
+            <div class="control">
+                <select id="cfg-tableFontSize">
+                    <option value="11px">11px (紧凑)</option>
+                    <option value="12px">12px (默认)</option>
+                    <option value="13px">13px</option>
+                    <option value="14px">14px (宽松)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label>单元格内边距</label>
+            <div class="control">
+                <select id="cfg-tablePadding">
+                    <option value="2px 4px">紧凑</option>
+                    <option value="3px 2px">默认</option>
+                    <option value="6px 8px">宽松</option>
+                    <option value="8px 12px">超宽松</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label>加载 Google 字体 <span class="help-text">关闭后使用本地字体</span></label>
+            <div class="control"><input type="checkbox" id="cfg-useGoogleFonts"></div>
+        </div>
+    </div>
+
+    <!-- 固定表头 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">📌</span> 固定表头</div>
+        <div class="form-row">
+            <label>启用固定表头 <span class="help-text">滚动时表头固定在顶部</span></label>
+            <div class="control"><input type="checkbox" id="cfg-stickyHeaderEnabled"></div>
+        </div>
+    </div>
+
+    <!-- 高级表格管理 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">🛠️</span> 高级表格管理</div>
+        <div class="form-row">
+            <label>启用表格管理 <span class="help-text">视图按钮、拖拽排序、隐藏列、筛选</span></label>
+            <div class="control"><input type="checkbox" id="cfg-tableManagerEnabled"></div>
+        </div>
+        <div class="form-row">
+            <label>保存视图设置 <span class="help-text">刷新后保留列宽、顺序、隐藏状态</span></label>
+            <div class="control"><input type="checkbox" id="cfg-saveViewSettings"></div>
+        </div>
+    </div>
+
+    <!-- 列宽控制 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">↔️</span> 列宽控制</div>
+        <div class="form-row">
+            <label>列宽最大值 (px)</label>
+            <div class="control"><input type="number" id="cfg-colMaxWidth" min="100" max="2000"></div>
+        </div>
+        <div class="form-row">
+            <label>列宽最小值 (px)</label>
+            <div class="control"><input type="number" id="cfg-colMinWidth" min="1" max="200"></div>
+        </div>
+        <div class="form-row">
+            <label>列宽采样行数 <span class="help-text">计算自动列宽时检查的数据行数</span></label>
+            <div class="control"><input type="number" id="cfg-colSampleRows" min="1" max="100"></div>
+        </div>
+    </div>
+
+    <!-- 截断与Tooltip -->
+    <div class="card">
+        <div class="card-title"><span class="icon">✂️</span> 截断与 Tooltip</div>
+        <div class="form-row">
+            <label>截断阈值 (字符数) <span class="help-text">超过此长度显示省略号，悬停显示完整内容</span></label>
+            <div class="control"><input type="number" id="cfg-tbTruncateThreshold" min="10" max="500"></div>
+        </div>
+    </div>
+
+    <!-- 日期格式化 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">📅</span> 日期格式化</div>
+        <div class="form-row">
+            <label>启用日期格式化 <span class="help-text">自动格式化时间戳列</span></label>
+            <div class="control"><input type="checkbox" id="cfg-dateFormatEnabled"></div>
+        </div>
+        <div class="form-row full">
+            <label>日期格式 <span class="help-text">Y年 M月 D日 H时 m分 s秒</span></label>
+            <div class="control">
+                <select id="cfg-dateFormatString">
+                    <option value="YYYY-MM-DD HH:mm:ss">2025-01-20 18:30:00</option>
+                    <option value="YY-MM-DD HH:mm:ss">25-01-20 18:30:00</option>
+                    <option value="YYYY/MM/DD HH:mm">2025/01/20 18:30</option>
+                    <option value="MM-DD HH:mm">01-20 18:30</option>
+                    <option value="HH:mm:ss">18:30:00</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索工具栏 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">🔍</span> 搜索工具栏</div>
+        <div class="form-row">
+            <label>启用搜索工具栏 <span class="help-text">Ctrl+F 打开自定义表格搜索</span></label>
+            <div class="control"><input type="checkbox" id="cfg-searchToolbarEnabled"></div>
+        </div>
+    </div>
+
+    <!-- 保存按钮 -->
+    <button id="btn-save" class="btn btn-success btn-block">💾 保存所有配置</button>
+
+    <div class="footer">MES 优化助手 v1.0 | 配置保存在本地浏览器</div>
 </div>
 
 <script src="options.js"></script>

@@ -1,110 +1,164 @@
 const DEFAULT_CFG = {
+    // 认证保活
     username: '',
     password: '',
-    keepAliveEnabled: false, // [不掉登录 账号保活] 默认关闭
-    tableManagerEnabled: false, // 表格管理
-    saveViewSettings: false, // 默认不保存
-    stickyHeaderEnabled: true, // 顶栏固定
-    highlightColor: '#FF6600',
-    highlightBackground: 'rgba(0,120,215,0.08)',
+    keepAliveEnabled: false,
+    // 菜单高亮
     highlightEnabled: true,
+    highlightColor: '#0078d7',
+    highlightBackground: 'rgba(0,120,215,0.08)',
+    // 表格总开关
     tbFixEnabled: true,
     tbMinHeight: 580,
-    tbTruncateThreshold: 30,
+    // 表格样式
+    tableFontFamily: '"JetBrains Mono", "Consolas", monospace',
+    tableFontSize: '12px',
+    tablePadding: '3px 2px',
+    useGoogleFonts: true,
+    // 固定表头
+    stickyHeaderEnabled: true,
+    // 高级表格管理
+    tableManagerEnabled: true,
+    saveViewSettings: false,
+    // 列宽控制
+    colMaxWidth: 850,
+    colMinWidth: 4,
+    colSampleRows: 12,
+    // 截断与Tooltip
+    tbTruncateThreshold: 120,
+    // 日期格式化
     dateFormatEnabled: true,
-    dateFormatString: 'YYYY-MM-DD HH:mm:ss'
-
+    dateFormatString: 'YY-MM-DD HH:mm:ss',
+    // 搜索工具栏
+    searchToolbarEnabled: true
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 加载配置
+// 配置项与DOM元素的映射
+const CONFIG_FIELDS = [
+    // 认证
+    { key: 'username', type: 'text' },
+    { key: 'password', type: 'text' },
+    { key: 'keepAliveEnabled', type: 'checkbox' },
+    // 菜单
+    { key: 'highlightEnabled', type: 'checkbox' },
+    { key: 'highlightColor', type: 'color' },
+    // 表格总开关
+    { key: 'tbFixEnabled', type: 'checkbox' },
+    { key: 'tbMinHeight', type: 'number' },
+    // 表格样式
+    { key: 'tableFontFamily', type: 'select' },
+    { key: 'tableFontSize', type: 'select' },
+    { key: 'tablePadding', type: 'select' },
+    { key: 'useGoogleFonts', type: 'checkbox' },
+    // 固定表头
+    { key: 'stickyHeaderEnabled', type: 'checkbox' },
+    // 高级管理
+    { key: 'tableManagerEnabled', type: 'checkbox' },
+    { key: 'saveViewSettings', type: 'checkbox' },
+    // 列宽
+    { key: 'colMaxWidth', type: 'number' },
+    { key: 'colMinWidth', type: 'number' },
+    { key: 'colSampleRows', type: 'number' },
+    // 截断
+    { key: 'tbTruncateThreshold', type: 'number' },
+    // 日期
+    { key: 'dateFormatEnabled', type: 'checkbox' },
+    { key: 'dateFormatString', type: 'select' },
+    // 搜索
+    { key: 'searchToolbarEnabled', type: 'checkbox' }
+];
+
+function getElement(key) {
+    return document.getElementById('cfg-' + key);
+}
+
+function loadConfig() {
     chrome.storage.local.get(['mes_config'], (result) => {
         const cfg = { ...DEFAULT_CFG, ...result.mes_config };
-
-        document.getElementById('cfg-user').value = cfg.username;
-        document.getElementById('cfg-pwd').value = cfg.password;
-        // 回显保活开关
-        document.getElementById('cfg-keep-alive').checked = cfg.keepAliveEnabled;
-        // 顶栏固定
-        document.getElementById('cfg-table-manager').checked = cfg.tableManagerEnabled;
-        document.getElementById('cfg-save-view').checked = cfg.saveViewSettings;
-        document.getElementById('cfg-sticky-header').checked = cfg.stickyHeaderEnabled;
-        document.getElementById('cfg-highlight-enable').checked = cfg.highlightEnabled;
-        document.getElementById('cfg-color').value = cfg.highlightColor;
-        document.getElementById('cfg-tb-enable').checked = cfg.tbFixEnabled;
-        document.getElementById('cfg-tb-truncate').value = cfg.tbTruncateThreshold;
-
-        // 确保日期格式有值
-        document.getElementById('cfg-date-format-enable').checked = cfg.dateFormatEnabled;
-        document.getElementById('cfg-date-format').value = cfg.dateFormatString || 'YY-MM-DD HH:mm:ss';
-    });
-
-    // 保存配置
-    document.getElementById('btn-save').addEventListener('click', () => {
-        const newCfg = {
-            username: document.getElementById('cfg-user').value,
-            password: document.getElementById('cfg-pwd').value,
-            // 保存保活开关
-            keepAliveEnabled: document.getElementById('cfg-keep-alive').checked,
-            // 保存固定表头配置
-            tableManagerEnabled: document.getElementById('cfg-table-manager').checked,
-            saveViewSettings: document.getElementById('cfg-save-view').checked,
-            stickyHeaderEnabled: document.getElementById('cfg-sticky-header').checked,
-            highlightEnabled: document.getElementById('cfg-highlight-enable').checked,
-            highlightColor: document.getElementById('cfg-color').value,
-            highlightBackground: hexToRgba(document.getElementById('cfg-color').value, 0.1),
-            tbFixEnabled: document.getElementById('cfg-tb-enable').checked,
-            tbMinHeight: 580, // 保持默认或从界面获取
-            tbTruncateThreshold: parseInt(document.getElementById('cfg-tb-truncate').value) || 30,
-            dateFormatEnabled: document.getElementById('cfg-date-format-enable').checked,
-            dateFormatString: document.getElementById('cfg-date-format').value || 'YY-MM-DD HH:mm:ss'
-        };
-
-        chrome.storage.local.set({ mes_config: newCfg }, () => {
-            const btn = document.getElementById('btn-save');
-            const originalText = btn.textContent;
-            btn.textContent = '✅ 保存成功！';
-            btn.style.background = '#218838';
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.background = '#28a745';
-            }, 1500);
-        });
-    });
-
-    // 登录测试 (Options 页面也可以保留这个功能)
-    document.getElementById('btn-refresh-cookie').addEventListener('click', () => {
-        const user = document.getElementById('cfg-user').value;
-        const pwd = document.getElementById('cfg-pwd').value;
-        const statusDiv = document.getElementById('login-status');
-
-        if(!user || !pwd) {
-            statusDiv.innerText = '❌ 请先填写用户名和密码';
-            statusDiv.style.color = 'red';
-            return;
-        }
-
-        statusDiv.innerText = "⏳ 正在连接后台...";
-        statusDiv.style.color = "blue";
-
-        chrome.runtime.sendMessage({
-            action: "DO_LOGIN",
-            data: { username: user, password: pwd }
-        }, (response) => {
-            if(response && response.success) {
-                statusDiv.innerText = "✅ " + response.msg;
-                statusDiv.style.color = "green";
+        
+        CONFIG_FIELDS.forEach(field => {
+            const el = getElement(field.key);
+            if (!el) return;
+            
+            if (field.type === 'checkbox') {
+                el.checked = cfg[field.key];
+            } else if (field.type === 'number') {
+                el.value = cfg[field.key];
             } else {
-                statusDiv.innerText = "❌ " + (response ? response.msg : "请求超时");
-                statusDiv.style.color = "red";
+                el.value = cfg[field.key];
             }
         });
     });
-});
+}
+
+function saveConfig() {
+    const cfg = {};
+    
+    CONFIG_FIELDS.forEach(field => {
+        const el = getElement(field.key);
+        if (!el) return;
+        
+        if (field.type === 'checkbox') {
+            cfg[field.key] = el.checked;
+        } else if (field.type === 'number') {
+            cfg[field.key] = parseInt(el.value) || DEFAULT_CFG[field.key];
+        } else {
+            cfg[field.key] = el.value;
+        }
+    });
+    
+    // 自动生成高亮背景色
+    cfg.highlightBackground = hexToRgba(cfg.highlightColor, 0.1);
+    
+    chrome.storage.local.set({ mes_config: cfg }, () => {
+        const btn = document.getElementById('btn-save');
+        const originalText = btn.textContent;
+        btn.textContent = '✅ 保存成功！';
+        btn.style.background = '#52c41a';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+        }, 1500);
+    });
+}
+
+function testLogin() {
+    const user = getElement('username').value;
+    const pwd = getElement('password').value;
+    const statusDiv = document.getElementById('login-status');
+
+    if (!user || !pwd) {
+        statusDiv.innerText = '❌ 请先填写用户名和密码';
+        statusDiv.style.color = '#ff4d4f';
+        return;
+    }
+
+    statusDiv.innerText = '⏳ 正在测试...';
+    statusDiv.style.color = '#1890ff';
+
+    chrome.runtime.sendMessage({
+        action: 'DO_LOGIN',
+        data: { username: user, password: pwd }
+    }, (response) => {
+        if (response && response.success) {
+            statusDiv.innerText = '✅ ' + response.msg;
+            statusDiv.style.color = '#52c41a';
+        } else {
+            statusDiv.innerText = '❌ ' + (response ? response.msg : '请求超时');
+            statusDiv.style.color = '#ff4d4f';
+        }
+    });
+}
 
 function hexToRgba(hex, alpha) {
-    let r = parseInt(hex.slice(1, 3), 16),
-        g = parseInt(hex.slice(3, 5), 16),
-        b = parseInt(hex.slice(5, 7), 16);
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadConfig();
+    document.getElementById('btn-save').addEventListener('click', saveConfig);
+    document.getElementById('btn-test-login').addEventListener('click', testLogin);
+});

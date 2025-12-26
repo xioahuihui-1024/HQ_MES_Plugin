@@ -6,10 +6,71 @@
     'use strict';
 
     // ==========================================
-    // 模块定义区
+    // 配置模块 (ConfigModule)
     // ==========================================
+    const ConfigModule = {
+        // 默认配置
+        default: {
+            // 认证保活
+            username: '',
+            password: '',
+            keepAliveEnabled: false,
 
-    // --- 1. 工具模块 (Utils) ---
+            // 菜单高亮
+            highlightEnabled: true,
+            highlightColor: '#0078d7',
+            highlightBackground: 'rgba(0,120,215,0.08)',
+
+            // 表格总开关
+            tbFixEnabled: true,
+            tbMinHeight: 580,
+
+            // 表格样式
+            tableFontFamily: '"JetBrains Mono", "Consolas", monospace',
+            tableFontSize: '12px',
+            tablePadding: '3px 2px',
+            useGoogleFonts: true,
+
+            // 固定表头
+            stickyHeaderEnabled: true,
+
+            // 高级表格管理
+            tableManagerEnabled: true,
+            saveViewSettings: false,
+
+            // 列宽控制
+            colMaxWidth: 850,
+            colMinWidth: 6,
+            colSampleRows: 12,
+
+            // 截断与Tooltip
+            tbTruncateThreshold: 120,
+
+            // 日期格式化
+            dateFormatEnabled: true,
+            dateFormatString: 'YY-MM-DD HH:mm:ss',
+
+            // 搜索工具栏
+            searchToolbarEnabled: true
+        },
+
+        // 加载配置
+        load: function () {
+            return new Promise(resolve => {
+                if (!Utils.isExtensionValid()) {
+                    resolve(this.default);
+                    return;
+                }
+                chrome.storage.local.get(['mes_config'], (res) => {
+                    resolve({ ...this.default, ...res.mes_config });
+                });
+            });
+        }
+    };
+
+    // ==========================================
+    // 工具模块 (Utils)
+    // ==========================================
     const Utils = {
         // 检查扩展上下文是否有效
         isExtensionValid: function() {
@@ -19,6 +80,7 @@
                 return false;
             }
         },
+
         // 安全等待 DOM 加载
         waitDOM: function (callback) {
             if (document.body && document.readyState !== 'loading') {
@@ -27,6 +89,7 @@
                 document.addEventListener('DOMContentLoaded', callback);
             }
         },
+
         // 复制到剪贴板
         copyText: function (text, onSuccess) {
             if (navigator.clipboard && window.isSecureContext) {
@@ -46,10 +109,12 @@
                 document.body.removeChild(textArea);
             }
         },
+
         // HTML 转义
         escapeHtml: function (unsafe) {
             return (unsafe || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         },
+
         // 时间格式化
         formatTimestamp: function (raw, formatStr) {
             if (!/^20\d{12}$/.test(raw)) return raw; // 简单的格式校验
@@ -66,10 +131,13 @@
         }
     };
 
-    // --- 2. 核心业务模块 (Auth & Request) ---
+    // ==========================================
+    // 认证模块 (AuthModule)
+    // ==========================================
     const AuthModule = {
         isHandling: false,
 
+        // 检查 DOM 中的过期提示
         checkDomExpiry: function () {
             Utils.waitDOM(() => {
                 const text = document.body.innerText;
@@ -209,6 +277,8 @@
                 }
             }
         },
+
+        // 绑定退出按钮
         bindLogout: function () {
             if (!location.pathname.toLowerCase().includes('top.aspx')) return;
             Utils.waitDOM(() => {
@@ -228,11 +298,13 @@
         }
     };
 
-    // --- 3. 界面增强模块 (UI) ---
-    // --- 3. 界面增强模块 (UI) ---
+    // ==========================================
+    // 界面增强模块 (UIModule)
+    // ==========================================
     const UIModule = {
         config: {},
 
+        // 初始化
         init: function (cfg) {
             this.config = cfg;
             this.injectStyles();
@@ -246,17 +318,18 @@
             });
         },
 
+        // 注入样式
         injectStyles: function () {
             Utils.waitDOM(() => {
                 // 引入 Google Fonts - JetBrains Mono
-                if (!document.getElementById('mes-google-fonts')) {
+                if (this.config.useGoogleFonts && !document.getElementById('mes-google-fonts')) {
                     const fontLink = document.createElement('link');
                     fontLink.id = 'mes-google-fonts';
                     fontLink.rel = 'stylesheet';
                     fontLink.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap';
                     document.head.appendChild(fontLink);
                 }
-                
+
                 let style = document.getElementById('mes-dynamic-style');
                 if (!style) {
                     style = document.createElement('style');
@@ -280,8 +353,8 @@
                     .mes-highlight { background-color: ${cfg.highlightBackground || '#eef'} !important; color: ${cfg.highlightColor} !important; border: 1px solid ${cfg.highlightColor}; border-radius: 4px; padding: 2px 5px !important; }
                     
                     /* === 表格基础 === */
-                    #tbDetail table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; font-family: "JetBrains Mono", "Consolas", monospace; }
-                    #tbDetail th, #tbDetail td { border: 1px solid #e8e8e8; padding: 3px 2px; position: relative; font-size: 12px; }
+                    #tbDetail table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; font-family: ${cfg.tableFontFamily}; }
+                    #tbDetail th, #tbDetail td { border: 1px solid #e8e8e8; padding: ${cfg.tablePadding}; position: relative; font-size: ${cfg.tableFontSize}; }
 
                     /* === 单行截断 === */
                     .mes-table-cell-fix { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; box-sizing: border-box; }
@@ -397,31 +470,22 @@
                     
                     /* === 设置按钮 === */
                     #mes-col-settings-btn {
-                        /* float: right; */ /* 确保去掉了 float，防止跑偏 */
-                      
-                        /* 1. 调整这里：减小内边距 (上右下左) */
-                        padding: 2px 8px;   /* 原来可能是 5px 12px，改小一点 */
-                        
-                        /* 2. 调整这里：字体改小 */
-                        font-size: 12px;    /* 原来可能是 13px */
-                        
-                        /* 其他保持不变 */
+                        padding: 2px 8px;
+                        font-size: 12px;
                         border: 1px solid #d9d9d9; 
                         background: #fff; 
                         border-radius: 4px;
                         color: #666; 
-                        display: inline-flex; /* 确保是 inline-flex 以便和分页栏对齐 */
+                        display: inline-flex;
                         align-items: center; 
                         gap: 4px;
                         position: relative; 
                         transition: all 0.3s;
                         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
                         user-select: none;
-                        
-                        /* [建议新增] 垂直对齐修正，防止按钮比旁边的下拉框高或者低 */
                         vertical-align: middle; 
-                        height: 24px;       /* 强制限制高度，跟旁边的输入框一致 */
-                        line-height: 1;     /* 防止文字撑开高度 */
+                        height: 24px;
+                        line-height: 1;
                     }
                     #mes-col-settings-btn:hover { color: #40a9ff; border-color: #40a9ff; }
                     
@@ -494,7 +558,9 @@
                         this.el = document.createElement('div');
                         this.el.id = 'mes-smart-tooltip';
                         document.body.appendChild(this.el);
-                    } else { this.el = document.getElementById('mes-smart-tooltip'); }
+                    } else {
+                        this.el = document.getElementById('mes-smart-tooltip');
+                    }
                 });
             },
             show: function(target, content) {
@@ -508,7 +574,10 @@
                 let top = rect.bottom + gap;
                 let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
                 let placement = 'bottom';
-                if (top + tooltipRect.height > window.innerHeight) { top = rect.top - tooltipRect.height - gap; placement = 'top'; }
+                if (top + tooltipRect.height > window.innerHeight) {
+                    top = rect.top - tooltipRect.height - gap;
+                    placement = 'top';
+                }
                 if (left < 10) left = 10;
                 else if (left + tooltipRect.width > window.innerWidth - 10) left = window.innerWidth - tooltipRect.width - 10;
                 this.el.style.top = top + 'px';
@@ -523,7 +592,9 @@
 
         // --- 表格管理器 (核心) ---
         TableManager: {
-            settings: {}, parentUI: null, dragSrcEl: null,
+            settings: {},
+            parentUI: null,
+            dragSrcEl: null,
             // 运行时状态 (不持久化)
             sortState: { colIndex: -1, direction: 'none' }, // none, asc, desc
             filterState: {}, // { colIndex: 'text' }
@@ -534,7 +605,11 @@
                 // 否则 settings 保持为空，刷新即重置
                 if (parent.config.saveViewSettings) {
                     const saved = localStorage.getItem('MES_TABLE_SETTINGS');
-                    if (saved) { try { this.settings = JSON.parse(saved); } catch(e) {} }
+                    if (saved) {
+                        try {
+                            this.settings = JSON.parse(saved);
+                        } catch(e) {}
+                    }
                 }
             },
 
@@ -594,8 +669,6 @@
                 if (this.parentUI.config.tableManagerEnabled) {
                     this.injectResizeHandles(table, pageKey);
                     this.injectSettingsButton(pageKey, table);
-                } else {
-                    // 即使没开管理器，为了融合模式的截断，也要处理单元格
                 }
 
                 // 4. 应用单元格样式 (截断/Tooltip)
@@ -609,14 +682,16 @@
                 table.style.tableLayout = 'auto';
                 const headers = Array.from(table.rows[0].cells);
                 const widths = {};
-                const MAX_WIDTH = 850; const MIN_WIDTH = 6; // [优化] 增大最大和最小宽度
-                
+                const MAX_WIDTH = this.parentUI.config.colMaxWidth || 850;
+                const MIN_WIDTH = this.parentUI.config.colMinWidth || 6;
+
                 // [修复] 遍历所有行，找出每列的最大内容宽度
                 headers.forEach((th, colIdx) => {
                     let maxWidth = th.offsetWidth;
-                    
+
                     // 遍历数据行，找最大宽度
-                    for (let i = 1; i < Math.min(table.rows.length, 12); i++) { // 只检查前12行，避免性能问题
+                    const sampleRows = this.parentUI.config.colSampleRows || 12;
+                    for (let i = 1; i < Math.min(table.rows.length, sampleRows + 1); i++) {
                         const cell = table.rows[i].cells[colIdx];
                         if (cell) {
                             // 临时移除截断样式以获取真实宽度
@@ -625,13 +700,13 @@
                             cell.style.overflow = 'visible';
                             const cellWidth = cell.scrollWidth;
                             cell.style.cssText = originalStyle;
-                            
+
                             if (cellWidth > maxWidth) {
                                 maxWidth = cellWidth;
                             }
                         }
                     }
-                    
+
                     // 加一点余量（padding + border）
                     let w = maxWidth + 10;
                     if (w > MAX_WIDTH) w = MAX_WIDTH;
@@ -674,7 +749,8 @@
                             fragment.appendChild(cell);
                         }
                     });
-                    row.innerHTML = ''; row.appendChild(fragment);
+                    row.innerHTML = '';
+                    row.appendChild(fragment);
                 });
             },
 
@@ -696,10 +772,10 @@
                         const originalHtml = cell.innerHTML.trim();
                         // 检查是否包含 HTML 标签（如 <a>, <img>）
                         const hasHtmlTags = /<[^>]+>/.test(originalHtml);
-                        
+
                         // [修复] 计算实际内容长度：对于有 HTML 标签的，用 HTML 长度判断；纯文本用 text 长度
                         const contentLength = hasHtmlTags ? originalHtml.length : text.length;
-                        
+
                         if (hasHtmlTags) {
                             // 保留原始 HTML，只包裹一层 div
                             cell.innerHTML = `<div class="mes-table-cell-fix">${originalHtml}</div>`;
@@ -725,7 +801,7 @@
                             div.dataset.fullText = text;
                             div.dataset.fullHtml = originalHtml;
                             div.dataset.hasHtml = hasHtmlTags ? '1' : '0';
-                            
+
                             cell.addEventListener('mouseenter', (e) => {
                                 // 如果已展开，不显示 tooltip
                                 if (div.classList.contains('mes-search-expanded')) return;
@@ -743,16 +819,18 @@
                         }
                     });
                 });
-                
+
                 // [优化2] 注入自定义搜索工具栏
-                this.injectSearchToolbar(table);
+                if (config.searchToolbarEnabled) {
+                    this.injectSearchToolbar(table);
+                }
             },
-            
+
             // [新增] 自定义页内搜索工具栏
             injectSearchToolbar: function(table) {
                 // 避免重复注入
                 if (document.getElementById('mes-search-toolbar')) return;
-                
+
                 const self = this;
                 const toolbar = document.createElement('div');
                 toolbar.id = 'mes-search-toolbar';
@@ -767,22 +845,22 @@
                     </div>
                 `;
                 document.body.appendChild(toolbar);
-                
+
                 const input = document.getElementById('mes-search-input');
                 const countEl = document.getElementById('mes-search-count');
                 const prevBtn = document.getElementById('mes-search-prev');
                 const nextBtn = document.getElementById('mes-search-next');
                 const closeBtn = document.getElementById('mes-search-close');
-                
+
                 let matches = []; // 存储所有匹配的 mark 元素
                 let currentIndex = -1;
-                
+
                 // 高亮关键词的函数
                 const highlightKeyword = (div, keyword) => {
                     const fullText = div.dataset.fullText || div.innerText || '';
                     const hasHtml = div.dataset.hasHtml === '1';
                     const originalHtml = div.dataset.fullHtml || div.innerHTML;
-                    
+
                     // 如果是纯文本，直接高亮
                     if (!hasHtml) {
                         const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -797,40 +875,40 @@
                         self.highlightTextNodes(tempDiv, regex);
                         div.innerHTML = tempDiv.innerHTML;
                     }
-                    
+
                     // 展开单元格
                     div.classList.add('mes-search-expanded');
-                    
+
                     // 返回这个 div 中所有的 mark 元素
                     return Array.from(div.querySelectorAll('mark.mes-keyword-highlight'));
                 };
-                
+
                 // 搜索逻辑
                 const doSearch = (keyword) => {
                     // 清除之前的高亮
                     self.clearSearchHighlight(table);
                     matches = [];
                     currentIndex = -1;
-                    
+
                     if (!keyword || keyword.length < 1) {
                         countEl.textContent = '';
                         return;
                     }
-                    
+
                     const lowerKeyword = keyword.toLowerCase();
-                    
+
                     // 遍历所有数据行
                     Array.from(table.rows).forEach((row, rIdx) => {
                         if (rIdx === 0) return; // 跳过表头
-                        
+
                         Array.from(row.cells).forEach((cell, cIdx) => {
                             const div = cell.querySelector('.mes-table-cell-fix');
                             if (!div) return;
-                            
+
                             // 获取完整内容（包括被截断的）
                             const fullText = (div.dataset.fullText || div.innerText || '').toLowerCase();
                             const fullHtml = (div.dataset.fullHtml || div.innerHTML || '').toLowerCase();
-                            
+
                             if (fullText.includes(lowerKeyword) || fullHtml.includes(lowerKeyword)) {
                                 // 高亮关键词并收集 mark 元素
                                 const marks = highlightKeyword(div, keyword);
@@ -841,7 +919,7 @@
                             }
                         });
                     });
-                    
+
                     // 更新计数
                     if (matches.length > 0) {
                         currentIndex = 0;
@@ -851,7 +929,7 @@
                         countEl.textContent = '0/0';
                     }
                 };
-                
+
                 // 跳转到下一个
                 const goNext = () => {
                     if (matches.length === 0) return;
@@ -864,7 +942,7 @@
                     countEl.textContent = `${currentIndex + 1}/${matches.length}`;
                     self.scrollToMatch(matches[currentIndex]);
                 };
-                
+
                 // 跳转到上一个
                 const goPrev = () => {
                     if (matches.length === 0) return;
@@ -876,7 +954,7 @@
                     countEl.textContent = `${currentIndex + 1}/${matches.length}`;
                     self.scrollToMatch(matches[currentIndex]);
                 };
-                
+
                 // 关闭搜索
                 const closeSearch = () => {
                     toolbar.classList.remove('mes-search-visible');
@@ -886,14 +964,14 @@
                     matches = [];
                     currentIndex = -1;
                 };
-                
+
                 // 绑定事件
                 let debounceTimer;
                 input.addEventListener('input', (e) => {
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => doSearch(e.target.value), 200);
                 });
-                
+
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -903,11 +981,11 @@
                         closeSearch();
                     }
                 });
-                
+
                 prevBtn.addEventListener('click', goPrev);
                 nextBtn.addEventListener('click', goNext);
                 closeBtn.addEventListener('click', closeSearch);
-                
+
                 // 监听 Ctrl+F，显示自定义搜索栏
                 document.addEventListener('keydown', (e) => {
                     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
@@ -924,7 +1002,7 @@
                     }
                 });
             },
-            
+
             // 递归高亮文本节点中的关键词
             highlightTextNodes: function(element, regex) {
                 const childNodes = Array.from(element.childNodes);
@@ -941,15 +1019,15 @@
                     }
                 });
             },
-            
+
             // 滚动到匹配项
             scrollToMatch: function(match) {
                 if (!match) return;
-                
+
                 // 高亮当前关键词
                 match.mark.classList.add('mes-keyword-current');
                 match.cell.classList.add('mes-search-current');
-                
+
                 // 滚动到可视区域 - 滚动到 mark 元素
                 match.mark.scrollIntoView({
                     behavior: 'smooth',
@@ -957,7 +1035,7 @@
                     inline: 'nearest'
                 });
             },
-            
+
             // 清除搜索高亮
             clearSearchHighlight: function(table) {
                 // 恢复原始内容
@@ -1232,33 +1310,6 @@
                 const btn = document.getElementById('mes-col-settings-btn');
                 if (!btn) return;
 
-                // 获取当前原始表头顺序用于比对
-                let currentHeaders = null;
-                const tb = document.getElementById('tbDetail');
-                if (tb) {
-                    const table = tb.querySelector('table');
-                    if (table && table.rows.length > 0) {
-                        // 注意：这里需要获取 DOM 中目前的顺序，但 isDirty 需要比对的是"默认顺序"
-                        // 实际上，只要 config.order 存在且不为空，我们就认为用户调整过顺序（即使调回去了）
-                        // 为了简化逻辑，我们假设只要有 order 记录就算脏，除非我们存了原始 defaultOrder
-
-                        // 既然要严格判断，那我们修改策略：
-                        // 只要 localStorage 里有这个 key 且不为空，就算脏。
-                        // 或者更简单：相信 isDirty 的判断。
-
-                        // 这里我们传入 null，让 isDirty 只检查 hidden 和 runtime state
-                        // 如果你想检查 order，你需要在此处获取原始顺序。
-                        // 由于原始顺序在 process 时可能已经丢失（因为 DOM 被重排了），这比较难办。
-
-                        // === 修正方案 ===
-                        // 我们只检查 显式的 hidden 和 运行时的 sort/filter
-                        // 对于 order，只有当它与"当前DOM顺序"不一致时... 不对，当前DOM就是order后的。
-
-                        // 妥协方案：只要 config.order 有值，就认为脏。
-                        // 并在"重置"时清除 config.order。
-                    }
-                }
-
                 if (this.isDirty(pageKey)) {
                     btn.classList.add('is-active');
                     btn.classList.add('is-dirty');
@@ -1340,12 +1391,6 @@
                 if (this.parentUI.config.saveViewSettings) {
                     localStorage.setItem('MES_TABLE_SETTINGS', JSON.stringify(this.settings));
                 }
-            },
-
-            // 主入口
-            fixTable: function () {
-                if (!this.config.tbFixEnabled) return;
-                this.TableManager.process();
             }
         },
 
@@ -1357,6 +1402,7 @@
                 document.body.appendChild(c);
             }
         },
+
         showOverlay: function(msg, isError) {
             Utils.waitDOM(() => {
                 let overlay = document.getElementById('mes-relogin-overlay');
@@ -1369,15 +1415,16 @@
                 overlay.innerHTML = `<div style="text-align:center;"><div style="font-size: 40px; margin-bottom: 20px;">${isError ? '⚠️' : '🍪'}</div><div>${msg}</div>${isError ? '<br><a href="Login.aspx" style="color:#0078d7; font-size:16px;">转到登录页</a>' : ''}</div>`;
             });
         },
+
         showDetailModal: function(content, isHtml = false) {
             const container = document.getElementById('mes-modal-container');
             if (!container) return;
-            
+
             // 根据是否是 HTML 内容决定显示方式
             const displayContent = isHtml ? content : Utils.escapeHtml(content);
             const titleIcon = isHtml ? '🔗' : '📄';
             const titleText = isHtml ? '完整内容 (含链接)' : '完整内容';
-            
+
             container.innerHTML = `<div class="mes-modal-overlay" id="mes-modal-close-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;display:flex;justify-content:center;align-items:center;"><div class="mes-modal-content" style="background:white;padding:20px;border-radius:8px;width:600px;max-height:80vh;display:flex;flex-direction:column;"><div style="display:flex;justify-content:space-between;margin-bottom:15px;border-bottom:1px solid #eee;"><h3 style="margin:0;color:#0078d7;">${titleIcon} ${titleText}</h3><span id="mes-modal-close-btn" style="cursor:pointer;font-size:24px;">×</span></div><div id="mes-modal-text" style="flex:1;overflow-y:auto;padding:10px;background:#f9f9f9;border:1px solid #eee;white-space:pre-wrap;word-break:break-all;">${displayContent}</div><div style="margin-top:15px;text-align:right;"><span id="mes-copy-tip" style="color:green;margin-right:10px;opacity:0;transition:opacity 0.5s;">✅ 已复制!</span><button id="mes-btn-copy" style="padding:6px 15px;background:#0078d7;color:white;border:none;border-radius:4px;cursor:pointer;">复制</button></div></div></div>`;
             const close = () => container.innerHTML = '';
             document.getElementById('mes-modal-close-btn').onclick = close;
@@ -1389,13 +1436,17 @@
                 });
             };
         },
+
         bindMenu: function() {
             if (!this.config.highlightEnabled) return;
             document.querySelectorAll('#treeFunc a, a[href*=".aspx"]').forEach(link => {
                 if (link.dataset.mesBound) return;
                 const href = (link.getAttribute('href') || '').trim();
                 const target = link.getAttribute('target');
-                if (href.toLowerCase().startsWith('javascript') || (target !== 'mainFrame' && !link.classList.contains('a02'))) { link.dataset.mesBound = "ignored"; return; }
+                if (href.toLowerCase().startsWith('javascript') || (target !== 'mainFrame' && !link.classList.contains('a02'))) {
+                    link.dataset.mesBound = "ignored";
+                    return;
+                }
                 link.dataset.mesBound = "true";
                 link.addEventListener('click', function () {
                     document.querySelectorAll('.mes-highlight').forEach(el => el.classList.remove('mes-highlight'));
@@ -1408,6 +1459,7 @@
                 });
             });
         },
+
         restoreMenu: function() {
             if (!Utils.isExtensionValid()) return;
             chrome.storage.local.get(['mes_last_selected_href'], (result) => {
@@ -1421,7 +1473,8 @@
                     while (p && safe < 50) {
                         safe++;
                         if (p.tagName === 'DIV' && p.id && /^treeFuncn\d+Nodes$/.test(p.id)) {
-                            p.style.display = 'block'; const idx = p.id.match(/^treeFuncn(\d+)Nodes$/)[1];
+                            p.style.display = 'block';
+                            const idx = p.id.match(/^treeFuncn(\d+)Nodes$/)[1];
                             const toggle = document.getElementById('treeFunct' + idx);
                             if(toggle) toggle.classList.add('mes-menu-open');
                         }
@@ -1432,39 +1485,10 @@
             });
         },
 
-        // 主入口
+        // 主入口 - 处理表格
         fixTable: function () {
             if (!this.config.tbFixEnabled) return;
             this.TableManager.process();
-        }
-    };
-
-
-    // --- 4. 配置管理模块 (Config) ---
-    const ConfigModule = {
-        default: {
-            keepAliveEnabled: false,
-            highlightEnabled: true,
-            highlightColor: '#0078d7',
-            highlightBackground: 'rgba(0,120,215,0.08)',
-            tableManagerEnabled: true, // 表格管理
-            stickyHeaderEnabled: true,
-            tbFixEnabled: true,
-            tbMinHeight: 580,
-            tbTruncateThreshold: 30,
-            dateFormatEnabled: true,
-            dateFormatString: 'YY-MM-DD HH:mm:ss'
-        },
-        load: function () {
-            return new Promise(resolve => {
-                if (!Utils.isExtensionValid()) {
-                    resolve(this.default);
-                    return;
-                }
-                chrome.storage.local.get(['mes_config'], (res) => {
-                    resolve({...this.default, ...res.mes_config});
-                });
-            });
         }
     };
 
@@ -1481,7 +1505,7 @@
         }
 
         // 0. [关键修复] 如果当前是主页 (Index.aspx)，说明用户已经正常登录进来了
-        // 必须清除之前的“手动退出”标记，否则下次过期时插件会以为用户还想退出
+        // 必须清除之前的"手动退出"标记，否则下次过期时插件会以为用户还想退出
         if (location.pathname.toLowerCase().includes('index.aspx')) {
             console.log('🏠 [Main] 检测到进入首页，清除手动退出标记');
             chrome.storage.local.remove('mes_manual_logout');
@@ -1494,7 +1518,6 @@
         (document.head || document.documentElement).appendChild(script);
         script.onload = () => script.remove();
 
-
         // 2. 加载配置并启动 UI
         const cfg = await ConfigModule.load();
         UIModule.init(cfg);
@@ -1502,7 +1525,7 @@
         // 3. 检查是否是失效页面
         AuthModule.checkDomExpiry();
 
-        // 4. 检查是否需要自动“重试查询” (回显数据 + 点击查询)
+        // 4. 检查是否需要自动"重试查询" (回显数据 + 点击查询)
         AuthModule.checkAutoRetry();
 
         // 5. 环境判断与循环任务
@@ -1539,7 +1562,6 @@
             console.warn('⚡ [MES-Core] 收到过期信号:', event.data);
             // 收到 inject.js 的信号，说明是 AJAX 请求或 Alert 弹窗触发的
             AuthModule.handleExpired(event.data.requestData);
-
         }
     });
 

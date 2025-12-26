@@ -1,0 +1,258 @@
+{
+  "extName": {
+    "message": "MES 助手 Pro",
+    "description": "扩展名称"
+  },
+  "extDescription": {
+    "message": "专为 MES 系统打造的增强工具。提供无感自动登录、断线请求重放、表格列拖拽排序/筛选、固定表头及智能数据展示功能，大幅提升工作效率。",
+    "description": "扩展描述"
+  },
+  "optionsTitle": {
+    "message": "MES 优化助手 - 设置",
+    "description": "设置页面标题"
+  },
+  "authSection": {
+    "message": "认证保活",
+    "description": "认证保活区块标题"
+  },
+  "username": {
+    "message": "用户名",
+    "description": "用户名标签"
+  },
+  "password": {
+    "message": "密码",
+    "description": "密码标签"
+  },
+  "passwordHint": {
+    "message": "仅保存在本地",
+    "description": "密码提示"
+  },
+  "enableKeepAlive": {
+    "message": "启用自动保活",
+    "description": "自动保活开关"
+  },
+  "keepAliveHint": {
+    "message": "Session过期时自动重登并恢复数据",
+    "description": "自动保活提示"
+  },
+  "testLogin": {
+    "message": "测试登录",
+    "description": "测试登录按钮"
+  },
+  "menuHighlight": {
+    "message": "菜单高亮",
+    "description": "菜单高亮区块标题"
+  },
+  "enableHighlight": {
+    "message": "启用菜单高亮",
+    "description": "菜单高亮开关"
+  },
+  "highlightHint": {
+    "message": "点击左侧菜单时高亮显示并记忆",
+    "description": "菜单高亮提示"
+  },
+  "highlightColor": {
+    "message": "高亮颜色",
+    "description": "高亮颜色标签"
+  },
+  "tableEnhance": {
+    "message": "表格增强",
+    "description": "表格增强区块标题"
+  },
+  "enableTableFix": {
+    "message": "启用表格增强",
+    "description": "表格增强开关"
+  },
+  "tableFixHint": {
+    "message": "总开关，关闭后下方所有表格功能失效",
+    "description": "表格增强提示"
+  },
+  "tableMinHeight": {
+    "message": "表格区最小高度 (px)",
+    "description": "表格最小高度标签"
+  },
+  "tableStyle": {
+    "message": "表格样式",
+    "description": "表格样式区块标题"
+  },
+  "tableFont": {
+    "message": "表格字体",
+    "description": "表格字体标签"
+  },
+  "tableFontSize": {
+    "message": "表格字号",
+    "description": "表格字号标签"
+  },
+  "tablePadding": {
+    "message": "单元格内边距",
+    "description": "单元格内边距标签"
+  },
+  "useGoogleFonts": {
+    "message": "加载 Google 字体",
+    "description": "Google字体开关"
+  },
+  "googleFontsHint": {
+    "message": "关闭后使用本地字体",
+    "description": "Google字体提示"
+  },
+  "stickyHeader": {
+    "message": "固定表头",
+    "description": "固定表头区块标题"
+  },
+  "enableStickyHeader": {
+    "message": "启用固定表头",
+    "description": "固定表头开关"
+  },
+  "stickyHeaderHint": {
+    "message": "滚动时表头固定在顶部",
+    "description": "固定表头提示"
+  },
+  "advancedTable": {
+    "message": "高级表格管理",
+    "description": "高级表格管理区块标题"
+  },
+  "enableTableManager": {
+    "message": "启用表格管理",
+    "description": "表格管理开关"
+  },
+  "tableManagerHint": {
+    "message": "视图按钮、拖拽排序、隐藏列、筛选",
+    "description": "表格管理提示"
+  },
+  "saveViewSettings": {
+    "message": "保存视图设置",
+    "description": "保存视图设置开关"
+  },
+  "saveViewHint": {
+    "message": "刷新后保留列宽、顺序、隐藏状态",
+    "description": "保存视图提示"
+  },
+  "columnWidth": {
+    "message": "列宽控制",
+    "description": "列宽控制区块标题"
+  },
+  "colMaxWidth": {
+    "message": "列宽最大值 (px)",
+    "description": "列宽最大值标签"
+  },
+  "colMinWidth": {
+    "message": "列宽最小值 (px)",
+    "description": "列宽最小值标签"
+  },
+  "colSampleRows": {
+    "message": "列宽采样行数",
+    "description": "列宽采样行数标签"
+  },
+  "colSampleHint": {
+    "message": "计算自动列宽时检查的数据行数",
+    "description": "列宽采样提示"
+  },
+  "truncateTooltip": {
+    "message": "截断与 Tooltip",
+    "description": "截断与Tooltip区块标题"
+  },
+  "truncateThreshold": {
+    "message": "截断阈值 (字符数)",
+    "description": "截断阈值标签"
+  },
+  "truncateHint": {
+    "message": "超过此长度显示省略号，悬停显示完整内容",
+    "description": "截断提示"
+  },
+  "dateFormat": {
+    "message": "日期格式化",
+    "description": "日期格式化区块标题"
+  },
+  "enableDateFormat": {
+    "message": "启用日期格式化",
+    "description": "日期格式化开关"
+  },
+  "dateFormatHint": {
+    "message": "自动格式化时间戳列",
+    "description": "日期格式化提示"
+  },
+  "dateFormatString": {
+    "message": "日期格式",
+    "description": "日期格式标签"
+  },
+  "dateFormatStringHint": {
+    "message": "Y年 M月 D日 H时 m分 s秒",
+    "description": "日期格式提示"
+  },
+  "searchToolbar": {
+    "message": "搜索工具栏",
+    "description": "搜索工具栏区块标题"
+  },
+  "enableSearch": {
+    "message": "启用搜索工具栏",
+    "description": "搜索工具栏开关"
+  },
+  "searchHint": {
+    "message": "Ctrl+F 打开自定义表格搜索",
+    "description": "搜索工具栏提示"
+  },
+  "saveAll": {
+    "message": "保存所有配置",
+    "description": "保存按钮"
+  },
+  "saveSuccess": {
+    "message": "保存成功！",
+    "description": "保存成功提示"
+  },
+  "fillCredentials": {
+    "message": "请先填写用户名和密码",
+    "description": "填写凭据提示"
+  },
+  "testing": {
+    "message": "正在测试...",
+    "description": "测试中提示"
+  },
+  "requestTimeout": {
+    "message": "请求超时",
+    "description": "请求超时提示"
+  },
+  "viewSettings": {
+    "message": "视图",
+    "description": "视图按钮"
+  },
+  "columnManage": {
+    "message": "列管理",
+    "description": "列管理标题"
+  },
+  "dragToSort": {
+    "message": "拖拽排序",
+    "description": "拖拽排序提示"
+  },
+  "filter": {
+    "message": "筛选",
+    "description": "筛选占位符"
+  },
+  "searchPlaceholder": {
+    "message": "搜索表格内容...",
+    "description": "搜索占位符"
+  },
+  "sessionExpired": {
+    "message": "会话过期，正在自动续期...",
+    "description": "会话过期提示"
+  },
+  "renewFailed": {
+    "message": "续期失败，请检查密码",
+    "description": "续期失败提示"
+  },
+  "noCredentials": {
+    "message": "未配置账号密码",
+    "description": "未配置凭据提示"
+  },
+  "autoReplaySuccess": {
+    "message": "已自动重放查询请求",
+    "description": "自动重放成功提示"
+  },
+  "queryConditionReset": {
+    "message": "上方查询条件可能已重置",
+    "description": "查询条件重置提示"
+  },
+  "gotIt": {
+    "message": "知道了",
+    "description": "知道了按钮"
+  }
+}
