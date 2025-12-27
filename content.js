@@ -2333,33 +2333,36 @@
 
         // 5. 环境判断与循环任务
         const path = location.pathname.toLowerCase();
-        const isMenu = path.includes('left') || document.querySelector('#treeFunc');
-        const isMain = path.includes('basicquery') || document.querySelector('#tbDetail');
         const isTop = path.includes('top.aspx');
 
         // 6. 执行逻辑
         if (isTop) {
             // Top 页只需要绑定一次退出，不需要 setInterval 循环检测
-            // 因为 Top 页加载完就不会变了
             AuthModule.bindLogout();
         }
 
-        if (isMenu) {
-            // [性能优化] 使用 MutationObserver 替代 setInterval 监听菜单变化
-            UIModule.bindMenu();
-            setTimeout(() => UIModule.restoreMenu(), 500);
-            
-            const menuContainer = document.querySelector('#treeFunc');
-            if (menuContainer) {
-                const menuObserver = new MutationObserver(() => {
-                    UIModule.bindMenu();
-                });
-                menuObserver.observe(menuContainer, { childList: true, subtree: true });
+        // 菜单页面处理 - 需要等待 DOM 加载
+        Utils.waitDOM(() => {
+            const isMenu = path.includes('left') || document.querySelector('#treeFunc');
+            if (isMenu) {
+                UIModule.bindMenu();
+                setTimeout(() => UIModule.restoreMenu(), 500);
+                
+                const menuContainer = document.querySelector('#treeFunc');
+                if (menuContainer) {
+                    const menuObserver = new MutationObserver(() => {
+                        UIModule.bindMenu();
+                    });
+                    menuObserver.observe(menuContainer, { childList: true, subtree: true });
+                }
             }
-        }
+        });
 
-        if (isMain) {
-            // [性能优化] 使用 MutationObserver 替代 setInterval 监听表格变化
+        // 表格页面处理 - 需要等待 DOM 加载
+        Utils.waitDOM(() => {
+            const isMain = path.includes('basicquery') || document.querySelector('#tbDetail');
+            if (!isMain) return;
+            
             UIModule.fixTable(); // 首次执行
             
             const tbDetail = document.getElementById('tbDetail');
@@ -2395,26 +2398,8 @@
                     }
                 });
                 bodyObserver.observe(document.body, { childList: true, subtree: true });
-            } else {
-                // 兜底：如果 body 也不存在，使用 DOMContentLoaded 后再设置
-                document.addEventListener('DOMContentLoaded', () => {
-                    const tb = document.getElementById('tbDetail');
-                    if (tb) {
-                        UIModule.fixTable();
-                        const tableObserver = new MutationObserver((muts) => {
-                            const hasTableChange = muts.some(m => 
-                                m.type === 'childList' && 
-                                (m.addedNodes.length > 0 || m.removedNodes.length > 0)
-                            );
-                            if (hasTableChange) {
-                                UIModule.fixTable();
-                            }
-                        });
-                        tableObserver.observe(tb, { childList: true, subtree: true });
-                    }
-                });
             }
-        }
+        });
     }
 
     // ==========================================
