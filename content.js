@@ -23,7 +23,7 @@
 
             // 表格总开关
             tbFixEnabled: true,
-            tbMinHeight: 580,
+            tbMinHeight: 460,
 
             // 表格样式
             tableFontFamily: '"JetBrains Mono", "Consolas", monospace',
@@ -44,7 +44,7 @@
             colSampleRows: 12,
 
             // 截断与Tooltip
-            tbTruncateThreshold: 120,
+            tbTruncateThreshold: 42,
 
             // 日期格式化
             dateFormatEnabled: true,
@@ -368,99 +368,11 @@
                         overflow: visible !important; 
                         text-overflow: clip !important;
                     }
-                    .mes-search-hit {
-                        background-color: #fffbe6 !important;
-                    }
-                    .mes-search-current {
-                        background-color: #fff1b8 !important;
-                    }
-                    /* 关键词高亮样式 */
-                    mark.mes-keyword-highlight {
-                        background-color: #fadb14 !important;
-                        color: #000 !important;
-                        padding: 1px 2px;
-                        border-radius: 2px;
-                        font-weight: 500;
-                    }
-                    mark.mes-keyword-current {
-                        background-color: #fa8c16 !important;
-                        color: #fff !important;
-                        box-shadow: 0 0 6px rgba(250, 140, 22, 0.8);
-                    }
+                    
                     /* 保留链接样式 */
                     .mes-table-cell-fix a { color: #1890ff; text-decoration: underline; }
                     .mes-table-cell-fix a:hover { color: #40a9ff; }
                     .mes-table-cell-fix img { max-width: 100px; max-height: 60px; vertical-align: middle; }
-                    
-                    /* === 自定义搜索工具栏 === */
-                    #mes-search-toolbar {
-                        position: fixed;
-                        top: -70px;
-                        right: 20px;
-                        z-index: 999999;
-                        background: #fff;
-                        border: 1px solid #d9d9d9;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                        padding: 10px 14px;
-                        transition: top 0.3s ease;
-                        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-                    }
-                    #mes-search-toolbar.mes-search-visible {
-                        top: 10px;
-                    }
-                    .mes-search-inner {
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                    }
-                    .mes-search-icon {
-                        font-size: 18px;
-                    }
-                    #mes-search-input {
-                        width: 220px;
-                        padding: 8px 12px;
-                        border: 1px solid #d9d9d9;
-                        border-radius: 4px;
-                        font-size: 15px;
-                        outline: none;
-                        transition: border-color 0.3s;
-                    }
-                    #mes-search-input:focus {
-                        border-color: #40a9ff;
-                        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-                    }
-                    .mes-search-count {
-                        font-size: 14px;
-                        color: #666;
-                        min-width: 50px;
-                        text-align: center;
-                    }
-                    .mes-search-nav {
-                        padding: 6px 10px;
-                        border: 1px solid #d9d9d9;
-                        background: #fff;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        transition: all 0.2s;
-                    }
-                    .mes-search-nav:hover {
-                        border-color: #40a9ff;
-                        color: #40a9ff;
-                    }
-                    .mes-search-close {
-                        padding: 6px 10px;
-                        border: none;
-                        background: transparent;
-                        cursor: pointer;
-                        font-size: 16px;
-                        color: #999;
-                        transition: color 0.2s;
-                    }
-                    .mes-search-close:hover {
-                        color: #ff4d4f;
-                    }
 
                     ${stickyCss}
 
@@ -1092,233 +1004,79 @@
 
             // [新增] 自定义页内搜索工具栏
             injectSearchToolbar: function(table) {
-                // 避免重复注入
-                if (document.getElementById('mes-search-toolbar')) return;
-
+                // 移除自定义搜索框，改为增强浏览器原生搜索
+                // 不再阻止 Ctrl+F，让浏览器原生搜索正常工作
+                
                 const self = this;
-                const toolbar = document.createElement('div');
-                toolbar.id = 'mes-search-toolbar';
-                toolbar.innerHTML = `
-                    <div class="mes-search-inner">
-                        <span class="mes-search-icon">🔍</span>
-                        <input type="text" id="mes-search-input" placeholder="表格内搜索..." autocomplete="off">
-                        <span id="mes-search-count" class="mes-search-count"></span>
-                        <button id="mes-search-prev" class="mes-search-nav" title="上一个 (Shift+Enter)">▲</button>
-                        <button id="mes-search-next" class="mes-search-nav" title="下一个 (Enter)">▼</button>
-                        <button id="mes-search-close" class="mes-search-close" title="关闭 (Esc)">✕</button>
-                    </div>
-                `;
-                document.body.appendChild(toolbar);
-
-                const input = document.getElementById('mes-search-input');
-                const countEl = document.getElementById('mes-search-count');
-                const prevBtn = document.getElementById('mes-search-prev');
-                const nextBtn = document.getElementById('mes-search-next');
-                const closeBtn = document.getElementById('mes-search-close');
-
-                let matches = []; // 存储所有匹配的 mark 元素
-                let currentIndex = -1;
-
-                // 高亮关键词的函数
-                const highlightKeyword = (div, keyword) => {
-                    const fullText = div.dataset.fullText || div.innerText || '';
-                    const hasHtml = div.dataset.hasHtml === '1';
-                    const originalHtml = div.dataset.fullHtml || div.innerHTML;
-
-                    // 如果是纯文本，直接高亮
-                    if (!hasHtml) {
-                        const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                        const highlighted = fullText.replace(regex, '<mark class="mes-keyword-highlight">$1</mark>');
-                        div.innerHTML = highlighted;
-                    } else {
-                        // 有 HTML 标签的情况，只高亮文本节点
-                        const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                        // 简单处理：先显示原始 HTML，再在文本部分高亮
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = originalHtml;
-                        self.highlightTextNodes(tempDiv, regex);
-                        div.innerHTML = tempDiv.innerHTML;
-                    }
-
-                    // 展开单元格
-                    div.classList.add('mes-search-expanded');
-
-                    // 返回这个 div 中所有的 mark 元素
-                    return Array.from(div.querySelectorAll('mark.mes-keyword-highlight'));
-                };
-
-                // 搜索逻辑
-                const doSearch = (keyword) => {
-                    // 清除之前的高亮
-                    self.clearSearchHighlight(table);
-                    matches = [];
-                    currentIndex = -1;
-
-                    if (!keyword || keyword.length < 1) {
-                        countEl.textContent = '';
-                        return;
-                    }
-
-                    const lowerKeyword = keyword.toLowerCase();
-
-                    // 遍历所有数据行
-                    Array.from(table.rows).forEach((row, rIdx) => {
-                        if (rIdx === 0) return; // 跳过表头
-
-                        Array.from(row.cells).forEach((cell, cIdx) => {
-                            const div = cell.querySelector('.mes-table-cell-fix');
-                            if (!div) return;
-
-                            // 获取完整内容（包括被截断的）
-                            const fullText = (div.dataset.fullText || div.innerText || '').toLowerCase();
-                            const fullHtml = (div.dataset.fullHtml || div.innerHTML || '').toLowerCase();
-
-                            if (fullText.includes(lowerKeyword) || fullHtml.includes(lowerKeyword)) {
-                                // 高亮关键词并收集 mark 元素
-                                const marks = highlightKeyword(div, keyword);
-                                marks.forEach(mark => {
-                                    matches.push({ mark, cell, div, row });
-                                });
-                                cell.classList.add('mes-search-hit');
+                
+                // 监听 DOM 变化，自动展开被浏览器搜索高亮的单元格
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            // 检测浏览器原生的搜索高亮（通常是 <mark> 或特定的 class）
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                // 查找包含高亮的单元格
+                                const cell = node.closest('td');
+                                if (cell) {
+                                    const div = cell.querySelector('.mes-table-cell-fix');
+                                    if (div && div.classList.contains('mes-truncated-cell')) {
+                                        // 展开被截断的单元格
+                                        self.expandCellForSearch(div);
+                                    }
+                                }
                             }
                         });
                     });
-
-                    // 更新计数
-                    if (matches.length > 0) {
-                        currentIndex = 0;
-                        countEl.textContent = `1/${matches.length}`;
-                        self.scrollToMatch(matches[0]);
-                    } else {
-                        countEl.textContent = '0/0';
-                    }
-                };
-
-                // 跳转到下一个
-                const goNext = () => {
-                    if (matches.length === 0) return;
-                    // 移除当前高亮
-                    if (currentIndex >= 0 && matches[currentIndex]) {
-                        matches[currentIndex].mark.classList.remove('mes-keyword-current');
-                        matches[currentIndex].cell.classList.remove('mes-search-current');
-                    }
-                    currentIndex = (currentIndex + 1) % matches.length;
-                    countEl.textContent = `${currentIndex + 1}/${matches.length}`;
-                    self.scrollToMatch(matches[currentIndex]);
-                };
-
-                // 跳转到上一个
-                const goPrev = () => {
-                    if (matches.length === 0) return;
-                    if (currentIndex >= 0 && matches[currentIndex]) {
-                        matches[currentIndex].mark.classList.remove('mes-keyword-current');
-                        matches[currentIndex].cell.classList.remove('mes-search-current');
-                    }
-                    currentIndex = (currentIndex - 1 + matches.length) % matches.length;
-                    countEl.textContent = `${currentIndex + 1}/${matches.length}`;
-                    self.scrollToMatch(matches[currentIndex]);
-                };
-
-                // 关闭搜索
-                const closeSearch = () => {
-                    toolbar.classList.remove('mes-search-visible');
-                    self.clearSearchHighlight(table);
-                    input.value = '';
-                    countEl.textContent = '';
-                    matches = [];
-                    currentIndex = -1;
-                };
-
-                // 绑定事件
-                let debounceTimer;
-                input.addEventListener('input', (e) => {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => doSearch(e.target.value), 200);
                 });
-
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (e.shiftKey) goPrev();
-                        else goNext();
-                    } else if (e.key === 'Escape') {
-                        closeSearch();
-                    }
-                });
-
-                prevBtn.addEventListener('click', goPrev);
-                nextBtn.addEventListener('click', goNext);
-                closeBtn.addEventListener('click', closeSearch);
-
-                // 监听 Ctrl+F，显示自定义搜索栏
+                
+                // 监听表格内的 DOM 变化
+                if (table) {
+                    observer.observe(table, {
+                        childList: true,
+                        subtree: true
+                    });
+                }
+                
+                // 监听 Ctrl+F，当用户按下时自动展开所有被截断的单元格
                 document.addEventListener('keydown', (e) => {
                     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                        // 检查当前页面是否有表格
-                        if (table && table.rows.length > 1) {
-                            e.preventDefault(); // 阻止浏览器默认搜索
-                            toolbar.classList.add('mes-search-visible');
-                            input.focus();
-                            input.select();
-                        }
-                    }
-                    if (e.key === 'Escape' && toolbar.classList.contains('mes-search-visible')) {
-                        closeSearch();
+                        // 不阻止默认行为，让浏览器原生搜索正常工作
+                        // 延迟一点展开单元格，确保浏览器搜索框已经打开
+                        setTimeout(() => {
+                            self.expandAllTruncatedCells(table);
+                        }, 100);
                     }
                 });
             },
-
-            // 递归高亮文本节点中的关键词
-            highlightTextNodes: function(element, regex) {
-                const childNodes = Array.from(element.childNodes);
-                childNodes.forEach(node => {
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        const text = node.textContent;
-                        if (regex.test(text)) {
-                            const span = document.createElement('span');
-                            span.innerHTML = text.replace(regex, '<mark class="mes-keyword-highlight">$1</mark>');
-                            node.parentNode.replaceChild(span, node);
-                        }
-                    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'MARK') {
-                        this.highlightTextNodes(node, regex);
-                    }
-                });
+            
+            // 展开单个单元格用于搜索
+            expandCellForSearch: function(div) {
+                if (!div) return;
+                
+                const fullText = div.dataset.fullText || div.innerText || '';
+                const hasHtml = div.dataset.hasHtml === '1';
+                
+                if (hasHtml) {
+                    div.innerHTML = div.dataset.fullHtml || div.innerHTML;
+                } else {
+                    div.textContent = fullText;
+                }
+                
+                // 移除截断样式，添加展开样式
+                div.classList.remove('mes-truncated-cell');
+                div.classList.add('mes-search-expanded');
             },
-
-            // 滚动到匹配项
-            scrollToMatch: function(match) {
-                if (!match) return;
-
-                // 高亮当前关键词
-                match.mark.classList.add('mes-keyword-current');
-                match.cell.classList.add('mes-search-current');
-
-                // 滚动到可视区域 - 滚动到 mark 元素
-                match.mark.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                    inline: 'nearest'
+            
+            // 展开所有被截断的单元格
+            expandAllTruncatedCells: function(table) {
+                if (!table) return;
+                
+                const truncatedCells = table.querySelectorAll('.mes-truncated-cell');
+                truncatedCells.forEach(div => {
+                    this.expandCellForSearch(div);
                 });
-            },
-
-            // 清除搜索高亮
-            clearSearchHighlight: function(table) {
-                // 恢复原始内容
-                table.querySelectorAll('.mes-search-expanded').forEach(div => {
-                    const hasHtml = div.dataset.hasHtml === '1';
-                    if (hasHtml) {
-                        div.innerHTML = div.dataset.fullHtml || div.innerHTML;
-                    } else {
-                        const fullText = div.dataset.fullText || div.innerText;
-                        div.innerHTML = Utils.escapeHtml(fullText);
-                    }
-                    div.classList.remove('mes-search-expanded');
-                });
-                table.querySelectorAll('.mes-search-hit').forEach(el => {
-                    el.classList.remove('mes-search-hit');
-                });
-                table.querySelectorAll('.mes-search-current').forEach(el => {
-                    el.classList.remove('mes-search-current');
-                });
+                
+                console.log(`🔍 [搜索增强] 已自动展开 ${truncatedCells.length} 个被截断的单元格，方便浏览器搜索`);
             },
 
             injectSettingsButton: function(pageKey, table) {
